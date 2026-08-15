@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "heuristic-discovery"
+version = "0.1.0"
+description = "Automatic discovery of planning heuristics"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { file = "LICENSE" }
+# The research layer deliberately depends on the standard library only: the
+# planner is a separate binary and results are plain JSON.
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=6.2"]
+yaml = ["PyYAML>=5.4"]
+
+[tool.setuptools.packages.find]
+where = ["python"]
+include = ["hd*"]
+
+[tool.pytest.ini_options]
+testpaths = ["python/tests"]
+filterwarnings = ["error"]
+
+[tool.black]
+line-length = 100
+
+[tool.ruff]
+line-length = 100
