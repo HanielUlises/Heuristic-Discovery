@@ -1,0 +1,23 @@
+# Build artefacts
+build/
+cmake-build-*/
+compile_commands.json
+*.o
+*.a
+
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.eggs/
+.pytest_cache/
+.venv/
+venv/
+
+# Experiment output (records are kept only when deliberately committed)
+results/*.json
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
