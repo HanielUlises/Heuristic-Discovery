@@ -8,8 +8,8 @@ designed by hand.
 
 Heuristic search is the dominant paradigm in automated planning, and the
 heuristic function is the component that decides whether a planner is usable.
-The heuristics in current use — delete relaxation, landmarks, abstractions,
-critical paths — are human artefacts: each is the product of a research
+The heuristics in current use (delete relaxation, landmarks, abstractions,
+critical paths) are human artefacts: each is the product of a research
 programme, each encodes a particular structural insight, and each is fixed once
 published. Two consequences follow. Progress is bounded by the rate at which
 researchers invent new relaxations, and a heuristic that is excellent on one
@@ -23,9 +23,9 @@ induce, and uses that measurement to propose better ones. The question this
 repository exists to answer is empirical: *how far does that get, and under
 which method?*
 
-The intended trajectory is to compare families of discovery methods —
-derivative-free optimisation, evolutionary search, reinforcement learning, and
-program synthesis — on the same benchmark, under the same objective, with the
+The intended trajectory is to compare families of discovery methods
+(derivative-free optimisation, evolutionary search, reinforcement learning,
+program synthesis) on the same benchmark, under the same objective, with the
 same execution engine. This requires infrastructure that keeps the discovery
 method interchangeable and the measurement trustworthy. That infrastructure is
 what the present phase provides; the discovery methods themselves are the
@@ -88,7 +88,7 @@ Fix a search algorithm $\mathcal{A}$ (greedy best-first search unless stated
 otherwise) and a benchmark suite $I = \{T_1, \dots, T_m\}$. Running
 $\mathcal{A}$ with $h_\theta$ on $T_j$ yields the measured quantities
 $\mathrm{exp}(T_j, \theta)$, $\mathrm{time}(T_j, \theta)$ and
-$\mathrm{cost}(T_j, \theta)$ — expansions, runtime and solution cost — together
+$\mathrm{cost}(T_j, \theta)$ for expansions, runtime and solution cost, together
 with an indicator $\mathrm{solved}(T_j, \theta) \in \{0, 1\}$. Heuristic
 discovery is the optimisation problem
 
@@ -113,8 +113,8 @@ $\alpha, \beta, \gamma, \delta$ are configurable. The cost term ranges over
 solved instances only, since an unsolved instance has no cost.
 
 Normalising per instance against a fixed reference makes the objective
-scale-free — $J = 1$ reproduces the reference and $J < 1$ improves on it — and
-prevents large instances from dominating the mean. The coverage term prices
+scale-free, so that $J = 1$ reproduces the reference and $J < 1$ improves on
+it, and prevents large instances from dominating the mean. The coverage term prices
 failure, which ratios of search effort cannot express: a heuristic that solves
 nothing expands few nodes.
 
@@ -137,45 +137,28 @@ $\lVert \theta \rVert_\infty = 1$.
 
 ## 3. Architecture
 
-The system is separated into an execution engine and a research layer.
+Two components. The C++20 execution engine implements states, actions, tasks,
+the search algorithms (breadth-first, greedy best-first, A\*), the feature
+evaluators and the heuristics. It reads a task file and a heuristic
+specification, runs the search, and writes a JSON metrics document; it performs
+no learning and holds no experiment state. The Python research layer holds
+everything outside the search loop: candidate representation, the objective,
+the optimisers, benchmark suites, experiment records and reporting. It treats
+the engine as a black box invoked once per candidate evaluation.
 
-**The execution engine (C++20)** implements states, actions, tasks, the search
-algorithms (breadth-first, greedy best-first, A\*), the feature evaluators, and
-the heuristics. It reads a task file and a heuristic specification, runs the
-search, and writes a JSON metrics document. It performs no learning and holds
-no experiment state.
+The interface is one heuristic specification string in and one JSON document
+out. Nothing else crosses, and that is what keeps the measurement honest. If
+Python were callable from inside the search loop, per-expansion overhead would
+depend on the interpreter and expansions would no longer be comparable across
+candidates. As it is, the boundary is crossed twice per evaluation, once to
+specify the heuristic and once to return the metrics, so reported search effort
+is a property of the heuristic rather than of the harness.
 
-**The research layer (Python)** implements everything outside the search loop:
-candidate representation, the objective, the optimisers, benchmark suites,
-experiment records, and reporting. It treats the engine as a black box invoked
-once per candidate evaluation.
-
-The interface between them is deliberately narrow: a heuristic specification
-string in, a JSON document out. Nothing else crosses.
-
-### 3.1 Why the two are separated
-
-The two components have incompatible requirements. Search is a tight loop over
-millions of states in which the cost of a state expansion determines what is
-measurable at all; the outer loop performs a few dozen iterations, is dominated
-by the planner runs it triggers, and changes shape with every new research
-idea. Implementing the inner loop in a language with fast, predictable state
-representations and the outer loop in one that makes experimentation cheap
-gives each what it needs.
-
-The separation also protects the measurement. If Python were callable from
-inside the search loop, per-expansion overhead would depend on the interpreter,
-and expansions and runtime would no longer be comparable across candidates.
-Because the boundary is crossed exactly twice per evaluation — once to specify
-the heuristic, once to return the metrics — reported search effort is a
-property of the heuristic, not of the harness.
-
-Consequences of this choice are enforced in the engine design: heuristics and
-domains reach the search algorithms through C++20 concepts rather than virtual
-interfaces, so evaluation is inlined and no dynamic dispatch occurs per node; a
-state is a fixed-capacity bitset, trivially copyable and allocation-free; and
-features that require expensive computation are evaluated only when they carry
-a non-zero weight.
+The same concern shapes the engine. Heuristics and domains reach the search
+algorithms through C++20 concepts rather than virtual interfaces, so evaluation
+is inlined and nothing is dispatched per node; a state is a fixed-capacity
+bitset, trivially copyable and allocation-free; and an expensive feature is
+evaluated only when its weight is non-zero.
 
 ## 4. Phase I scope
 
@@ -249,8 +232,8 @@ search space is now seven-dimensional.
 | `relaxed_layers` | 20/20 | 19720 | 79271 | 262 | 0.24 s |
 
 Taking `goal_count` as the reference configuration and minimising $J$ with
-$\alpha = 1$, $\beta = \gamma = 0$, $\delta = 10$ — that is, scoring expansions
-alone under a coverage penalty — random search followed by local refinement
+$\alpha = 1$, $\beta = \gamma = 0$, $\delta = 10$ (that is, scoring expansions
+alone under a coverage penalty), random search followed by local refinement
 returns, after 25 planner invocations,
 
 ```math
@@ -302,7 +285,9 @@ Among admissible candidates informedness is the quantity that predicts A\*
 expansions, and unlike expansions it is dense, deterministic, and obtained
 without running a search.
 
-![Admissibility and informedness](docs/figures/admissibility.svg)
+<p align="center">
+  <img src="docs/figures/admissibility.svg" alt="Admissibility and informedness" width="560">
+</p>
 
 **Figure 1.** Where a heuristic is allowed to lie. Admissibility confines it to
 the region below $h = h^{*}$, and informedness measures how close to that
@@ -311,7 +296,7 @@ over the twelve instances of the table below; `zero` is the horizontal axis
 itself. The $\theta^{\star}$ of §5 leaves the region immediately.
 
 Enumeration reaches eight blocks: at a ceiling of $10^6$ states, 16 of the 20
-committed instances are enumerable — 695417 states for the largest — and the
+committed instances are enumerable, 695417 states for the largest, and the
 three cheap baselines are checked over all of them in about 22 seconds. The
 table below uses the twelve instances up to seven blocks, where every heuristic
 including the expensive one is checked on the same 295648 states (42 seconds).
@@ -326,45 +311,45 @@ including the expensive one is checked on the same 295648 states (42 seconds).
 
 The row for $\theta^{\star}$ is measured over the 16 enumerable instances: it
 overestimates at every one of the 3077314 reachable states it was checked on,
-by up to 289.29, and values the goal state itself at 59.77 rather than 0. This is not a defect of the optimiser: greedy
-best-first search orders nodes by `h` alone, so the objective of §2.3 is
-indifferent to admissibility, and §2.4 makes `θ` identifiable only up to a
-positive scalar, which admissibility is not invariant to. The result is a
-satisficing one and only ever was.
+by up to 289.29, and values the goal state itself at 59.77 rather than 0. The
+optimiser is not at fault. Greedy best-first search orders nodes by `h` alone,
+so the objective of §2.3 cannot see admissibility, and §2.4 identifies `θ` only
+up to a positive scalar, which admissibility is not invariant to. §5 is a
+satisficing result and was never anything else.
 
-Two asymmetries should be kept in view. A violation is a certificate: the
-witness state settles the question for good. A clean report establishes only
-that no counterexample exists among the instances that could be enumerated,
-and is reported as *not falsified* rather than as proof. And enumeration is
-exponential in instance size, so the check is available exactly where search is
-easy — which is why a hypothesis class whose members are admissible *by
-construction* is worth more than a class that has to be tested.
+The verdicts are not symmetric. A violation is a certificate: the witness state
+settles the question for good. A clean report says only that no counterexample
+was found among the instances that could be enumerated, and is reported as
+*not falsified* rather than as proof. Enumeration is also exponential in
+instance size, so the check is available exactly where search is easy. A
+hypothesis class whose members are admissible *by construction* is therefore
+worth more than one that has to be tested.
 
-The present class does not have that property. Admissibility forces `h` to
-vanish on goal states, where `achieved_goals`, `true_propositions` and
-`applicable_actions` are all non-zero, so three of the seven weights must be zero
-before anything else is considered; and the sum of two admissible heuristics is
-in general not admissible, which leaves little inside `h_θ` to discover.
-Constructing an admissible class — cost partitioning over structurally
-distinct admissible components — is recorded in `DEVELOPMENT.md`.
+The present class is not such a class. Admissibility forces `h` to vanish on
+goal states, where `achieved_goals`, `true_propositions` and
+`applicable_actions` are all non-zero, so three of the seven weights must be
+zero before anything else is considered. The sum of two admissible heuristics
+is in general not admissible either, which leaves little inside `h_θ` to
+discover. `DEVELOPMENT.md` records what an admissible class would take.
 
 ### 6.1 The landmark component
 
 A landmark of a state $s$ is a proposition true at some point in every plan
 from $s$. Landmarks are generated here by relaxed reachability: $p$ is a
 landmark iff the goal is unreachable in the delete relaxation from $s$ once
-every action adding $p$ is removed. The test is sound — every real plan is also
-a relaxed plan, so a fact all relaxed plans need is a fact all plans need — and
-incomplete in two ways that cost informedness but not admissibility: it finds
-only single-fact landmarks, and it misses those whose necessity depends on
-delete effects.
+every action adding $p$ is removed. The test is sound, because every real plan is
+also a relaxed plan, so a fact that all relaxed plans need is a fact that all
+plans need. It is incomplete in two ways, both of which cost informedness and
+neither of which costs admissibility: it finds only single-fact landmarks, and
+it misses those whose necessity depends on delete effects.
 
-![Landmark generation by relaxed reachability](docs/figures/landmarks.svg)
+<p align="center">
+  <img src="docs/figures/landmarks.svg" alt="Landmark generation by relaxed reachability" width="700">
+</p>
 
-**Figure 2.** The test that generates a landmark. Both panels live in the
-delete relaxation, where reachability is cheap to decide and monotone, so the
-question "is the goal still reachable without $p$?" is answered by one fixpoint
-per candidate proposition.
+**Figure 2.** The test that generates a landmark. Both panels are in the delete
+relaxation, where reachability is monotone and cheap to decide, so one fixpoint
+per candidate proposition answers the question.
 
 *Counting* the unachieved landmarks is not admissible, because one action may
 achieve several at once. The value used is the uniform cost partition over
@@ -381,7 +366,9 @@ h_{\mathrm{LM}}(s) \;=\; \sum_{L \,\in\, \mathrm{LM}(s)} \;
 Every plan achieves every landmark, and the shares one action hands out sum to
 at most its own cost, so the total is a lower bound.
 
-![Counting against pricing landmarks](docs/figures/partition.svg)
+<p align="center">
+  <img src="docs/figures/partition.svg" alt="Counting against pricing landmarks" width="540">
+</p>
 
 **Figure 3.** The case that separates the two, and the task the unit tests use.
 `both` achieves the two goals at once, and each goal also has a single-goal
@@ -398,23 +385,42 @@ admissible baselines return optimal plans of total cost 114:
 | `relaxed_layers` | 113684 | 0 | 0.97 s |
 | `landmark_cost` | 7074 | 669 | 1.34 s |
 
-The bound is much better informed per node and much more expensive per node:
-landmarks are regenerated from scratch at every state, since the framework
+The bound is much better informed per node and much more expensive per node.
+Landmarks are regenerated from scratch at every state, because the framework
 requires $h$ to be a function of the state alone, and that costs one relaxed
-reachability test per candidate proposition. Making it competitive in runtime,
-rather than only in expansions, is a separate problem from making it admissible.
+reachability test per candidate proposition. Making the component competitive
+in runtime is a separate problem from making it admissible, and it is not
+solved here.
 
-The reopenings are the visible consequence of the one property the verifier
-denies it: `landmark_cost` is admissible but *not consistent*. State-generated
-landmark sets do not vary monotonically along a transition, so $h$ can fall by
-more than the cost of the edge, and A\* must reopen closed states. It remains
-correct; it loses the guarantee that a state is closed once.
+The reopenings come from the one property the verifier denies it:
+`landmark_cost` is admissible but *not consistent*. Landmark sets generated
+from the state do not vary monotonically along a transition, so $h$ can fall by
+more than the cost of an edge and A\* has to reopen closed states. The search is
+still correct, but it loses the guarantee that a state is closed once.
 
-Because $h_{\mathrm{LM}}$ is linear in the action costs, evaluating it under
-costs $w \cdot c$ multiplies it by exactly $w$. That is precisely what a cost
-partition over several components requires, and the linear class already
-supplies the weight — which is why this is the first component of the class
-described in `DEVELOPMENT.md`, and not merely another baseline.
+This is the first component of a cost partition rather than merely another
+baseline, but the linear class of §2.2 is not the partition it belongs to.
+Scaling every action cost by one weight $w$ multiplies $h_{\mathrm{LM}}$ by
+exactly $w$, so a per-component weight vector on the simplex ($w_i \ge 0$,
+$\sum_i w_i \le 1$) does yield an admissible $\sum_i w_i h_i$; but that value
+is a convex combination, and
+
+```math
+\sum_i w_i h_i \;\le\; \Big( \sum_i w_i \Big) \max_j h_j \;\le\; \max_j h_j
+```
+
+pointwise, while $\max_j h_j$ is itself admissible. A partition of that shape can
+never beat taking the maximum of its own components, so there is nothing in it
+to discover.
+
+Cost partitioning beats the maximum only in its general form, where each
+component receives its **own cost function over actions**. Any $c_1, \dots, c_k
+\ge 0$ with $\sum_i c_i(a) \le c(a)$ for every $a$ admits $\sum_i h_i^{c_i}$ as a
+lower bound, and it is the disjointness of the cost mass that lets the sum
+exceed the maximum. What has to be discovered is then a cost function per
+component rather than a scalar, which needs a second component to partition
+against and an engine that evaluates a component under supplied costs.
+`DEVELOPMENT.md` records the work that follows.
 
 ## 7. Reproducibility
 
@@ -432,23 +438,10 @@ and benchmark instances are a pure function of their generator seed. A
 discovered heuristic serialises to JSON or YAML and, reloaded, reproduces its
 metrics exactly.
 
-## 8. Repository conventions
-
-The C++ engine lives under `cpp/` (headers in `cpp/include/hd/`, the
-executables `hd_plan` and `hd_verify` with the platform code in `cpp/src/`,
-unit tests in `cpp/tests/`), the
-Python research layer under `python/hd/` with its tests in `python/tests/` and
-runnable experiments in `python/hd/experiments/`. Generated instances are in
-`instances/`, suite manifests in `benchmarks/`, experiment records in
-`results/`, and file-format documentation in `docs/`. The figures are TikZ
-sources in `docs/figures/`, with the SVGs they generate committed beside them
-so that the README renders without a LaTeX toolchain; `docs/figures/build.sh`
-regenerates them.
-
-Design decisions, their justifications, and the next research iteration are
+Design decisions, their justifications and the next research iteration are
 recorded in `DEVELOPMENT.md`. The task file format and the JSON schemas are
 specified in `docs/format.md`.
 
-## 9. Licence
+## 8. Licence
 
 MIT. See `LICENSE`.

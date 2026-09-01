@@ -27,7 +27,7 @@ heuristic) pair. Heuristic evaluation is inlined into the expansion loop and no
 vtable is consulted per node. The cost is compile time and slightly harder
 error messages; the benefit is that the measured expansion rate reflects the
 heuristic rather than the dispatch mechanism. Adding a heuristic requires only
-a callable — there is no base class to inherit.
+a callable, with no base class to inherit.
 
 **Features dispatched by enum switch, computed lazily.** Features are named
 values in a single enum with a parallel name table shared with Python (an
@@ -101,7 +101,7 @@ reporting path is permitted to phrase the latter as proof.
 the search path (which is what LM-A\* does, and what makes landmark heuristics
 cheap) has nowhere to live. Landmarks are therefore recomputed from the state
 alone: sound, deterministic, reproducible from a state in isolation, and
-expensive — one relaxed reachability test per candidate proposition. The
+expensive, at one relaxed reachability test per candidate proposition. The
 alternative would change the interface every search algorithm and the verifier
 depend on, in exchange for a heuristic that is no longer a function of the
 state, and it was not worth that before the component had been shown to pay for
@@ -111,9 +111,12 @@ itself in expansions.
 inadmissible whenever one action achieves several at once, which Blocksworld
 does constantly. The uniform cost partition (each action divides its cost among
 the landmarks it can achieve; each landmark takes the cheapest share offered)
-restores admissibility, and its value is linear in the action costs, so the
-component is already in the form a cost partition over several heuristics
-needs: its weight is its share of the cost budget.
+restores admissibility. Its value is linear in the action costs, which is a
+necessary property for a component of a cost partition but not a sufficient
+one: a partition needs each component evaluated under its own cost function
+over actions, and `LandmarkFactory` currently reads the task's costs directly.
+Taking a cost vector instead is the change that turns it from a baseline into a
+component.
 
 **Blocksworld, one domain.** A single domain family with a size parameter gives
 a difficulty gradient (the committed suite spans 5 to 9 blocks; the zero
@@ -163,20 +166,51 @@ claim about generality, which is the point at which one should be added.
 In rough order of expected value per unit of work:
 
 1. **An admissible hypothesis class.** `landmark_cost` is the first component;
-   what remains is the partition itself. The linear class is the wrong object if
-   admissibility is the goal: `h` must vanish on goal states, which forces the
-   weights on `achieved_goals`, `true_propositions` and `applicable_actions` to
-   zero, and the sum of admissible components is not admissible in general, so
-   the admissible region of `h_θ` is essentially `w·relaxed_layers` with
-   `w <= 1`. Cost partitioning is the standard construction that fixes this:
-   with `w_i >= 0`, `Σ w_i <= 1` and component `i` evaluated under costs
-   `w_i · c`, the sum is admissible by construction and the optimiser searches
-   a simplex instead of a box. It pays only across structurally distinct
-   components, so it requires adding some: landmarks are in, small pattern
-   databases are next, and the discovery question becomes which partition of
-   the cost budget beats a uniform one. Under this class the objective
-   should be informedness against `h*` on enumerable instances, with A\*
-   expansions on the full suite as the confirmatory measurement.
+   what remains is the partition itself. The linear class is the wrong object
+   if admissibility is the goal: `h` must vanish on goal states, which forces
+   the weights on `achieved_goals`, `true_propositions` and
+   `applicable_actions` to zero, and the sum of admissible components is not
+   admissible in general, so the admissible region of `h_θ` is essentially
+   `w·relaxed_layers` with `w <= 1`.
+
+   Cost partitioning is the standard construction that fixes this, but only in
+   its general form. Weighting whole components (`w_i >= 0`, `Σ w_i <= 1`,
+   component `i` under costs `w_i·c`) is admissible and is a convex
+   combination, hence bounded by `max_j h_j`, which is itself admissible: such
+   a partition can never beat the maximum of its own components, and there is
+   nothing in it to discover. The general form gives each component its own
+   cost function: any `c_1, ..., c_k >= 0` with `Σ_i c_i(a) <= c(a)` for every
+   action admits `Σ_i h_i` as a bound, and the disjointness of the cost mass is
+   what lets the sum exceed the maximum.
+
+   The work that follows from this, in order:
+
+   1. **Components take a cost vector.** `LandmarkFactory` reads
+      `task.cost(act)`; it needs an optional per-action cost vector, defaulting
+      to the task's own. The verifier is the regression test: the bound under
+      `c_i` must be admissible for the task under `c_i`.
+   2. **A second component.** Pattern databases over small subsets of
+      propositions, built by backward Dijkstra over the projected state
+      space, which is `oracle.hpp` run on an abstraction. Without a second
+      component there is no partition to search over.
+   3. **The partition scheme.** Uniform (each action's cost split among the
+      components that can use it) as the control; saturated cost partitioning
+      as the target, where each component in turn takes the least cost that
+      preserves its own estimates and passes on the remainder; optimal cost
+      partitioning by LP, per state, as the ceiling to report against.
+      Saturated partitioning is computed rather than learned, but it depends on
+      the order of the components. That order is a permutation, which is
+      small and interpretable, and it is the right object for this project to
+      discover.
+   4. **The objective.** Informedness against `h*` on the enumerable
+      instances, computed by `hd_verify` without running a search, with A\*
+      expansions on the full suite as the confirmatory measurement. Under a
+      construction that is admissible by design the verifier checks the
+      construction rather than filtering candidates.
+   5. **The controls.** Best single component, the maximum of the components,
+      and uniform partitioning. A learned partition that beats none of them has
+      demonstrated nothing.
+
 2. **A second domain.** Gripper or Logistics, added as a generator alongside
    `hd.domains.blocksworld`. Then re-run the Phase I experiment and report
    cross-domain transfer: does `θ*` learned on one domain help on the other?
