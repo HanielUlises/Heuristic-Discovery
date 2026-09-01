@@ -1,0 +1,290 @@
+name blocks-05-02
+propositions 36
+prop 0 on_0_1
+prop 1 on_0_2
+prop 2 on_0_3
+prop 3 on_0_4
+prop 4 on_1_0
+prop 5 on_1_2
+prop 6 on_1_3
+prop 7 on_1_4
+prop 8 on_2_0
+prop 9 on_2_1
+prop 10 on_2_3
+prop 11 on_2_4
+prop 12 on_3_0
+prop 13 on_3_1
+prop 14 on_3_2
+prop 15 on_3_4
+prop 16 on_4_0
+prop 17 on_4_1
+prop 18 on_4_2
+prop 19 on_4_3
+prop 20 ontable_0
+prop 21 ontable_1
+prop 22 ontable_2
+prop 23 ontable_3
+prop 24 ontable_4
+prop 25 clear_0
+prop 26 clear_1
+prop 27 clear_2
+prop 28 clear_3
+prop 29 clear_4
+prop 30 holding_0
+prop 31 holding_1
+prop 32 holding_2
+prop 33 holding_3
+prop 34 holding_4
+prop 35 handempty
+init 13 20 21 22 24 25 27 28 29 35
+goal 3 4 19 22 23
+action pickup_0 1
+pre 20 25 35
+add 30
+del 20 25 35
+end
+action putdown_0 1
+pre 30
+add 20 25 35
+del 30
+end
+action stack_0_1 1
+pre 26 30
+add 0 25 35
+del 26 30
+end
+action unstack_0_1 1
+pre 0 25 35
+add 26 30
+del 0 25 35
+end
+action stack_0_2 1
+pre 27 30
+add 1 25 35
+del 27 30
+end
+action unstack_0_2 1
+pre 1 25 35
+add 27 30
+del 1 25 35
+end
+action stack_0_3 1
+pre 28 30
+add 2 25 35
+del 28 30
+end
+action unstack_0_3 1
+pre 2 25 35
+add 28 30
+del 2 25 35
+end
+action stack_0_4 1
+pre 29 30
+add 3 25 35
+del 29 30
+end
+action unstack_0_4 1
+pre 3 25 35
+add 29 30
+del 3 25 35
+end
+action pickup_1 1
+pre 21 26 35
+add 31
+del 21 26 35
+end
+action putdown_1 1
+pre 31
+add 21 26 35
+del 31
+end
+action stack_1_0 1
+pre 25 31
+add 4 26 35
+del 25 31
+end
+action unstack_1_0 1
+pre 4 26 35
+add 25 31
+del 4 26 35
+end
+action stack_1_2 1
+pre 27 31
+add 5 26 35
+del 27 31
+end
+action unstack_1_2 1
+pre 5 26 35
+add 27 31
+del 5 26 35
+end
+action stack_1_3 1
+pre 28 31
+add 6 26 35
+del 28 31
+end
+action unstack_1_3 1
+pre 6 26 35
+add 28 31
+del 6 26 35
+end
+action stack_1_4 1
+pre 29 31
+add 7 26 35
+del 29 31
+end
+action unstack_1_4 1
+pre 7 26 35
+add 29 31
+del 7 26 35
+end
+action pickup_2 1
+pre 22 27 35
+add 32
+del 22 27 35
+end
+action putdown_2 1
+pre 32
+add 22 27 35
+del 32
+end
+action stack_2_0 1
+pre 25 32
+add 8 27 35
+del 25 32
+end
+action unstack_2_0 1
+pre 8 27 35
+add 25 32
+del 8 27 35
+end
+action stack_2_1 1
+pre 26 32
+add 9 27 35
+del 26 32
+end
+action unstack_2_1 1
+pre 9 27 35
+add 26 32
+del 9 27 35
+end
+action stack_2_3 1
+pre 28 32
+add 10 27 35
+del 28 32
+end
+action unstack_2_3 1
+pre 10 27 35
+add 28 32
+del 10 27 35
+end
+action stack_2_4 1
+pre 29 32
+add 11 27 35
+del 29 32
+end
+action unstack_2_4 1
+pre 11 27 35
+add 29 32
+del 11 27 35
+end
+action pickup_3 1
+pre 23 28 35
+add 33
+del 23 28 35
+end
+action putdown_3 1
+pre 33
+add 23 28 35
+del 33
+end
+action stack_3_0 1
+pre 25 33
+add 12 28 35
+del 25 33
+end
+action unstack_3_0 1
+pre 12 28 35
+add 25 33
+del 12 28 35
+end
+action stack_3_1 1
+pre 26 33
+add 13 28 35
+del 26 33
+end
+action unstack_3_1 1
+pre 13 28 35
+add 26 33
+del 13 28 35
+end
+action stack_3_2 1
+pre 27 33
+add 14 28 35
+del 27 33
+end
+action unstack_3_2 1
+pre 14 28 35
+add 27 33
+del 14 28 35
+end
+action stack_3_4 1
+pre 29 33
+add 15 28 35
+del 29 33
+end
+action unstack_3_4 1
+pre 15 28 35
+add 29 33
+del 15 28 35
+end
+action pickup_4 1
+pre 24 29 35
+add 34
+del 24 29 35
+end
+action putdown_4 1
+pre 34
+add 24 29 35
+del 34
+end
+action stack_4_0 1
+pre 25 34
+add 16 29 35
+del 25 34
+end
+action unstack_4_0 1
+pre 16 29 35
+add 25 34
+del 16 29 35
+end
+action stack_4_1 1
+pre 26 34
+add 17 29 35
+del 26 34
+end
+action unstack_4_1 1
+pre 17 29 35
+add 26 34
+del 17 29 35
+end
+action stack_4_2 1
+pre 27 34
+add 18 29 35
+del 27 34
+end
+action unstack_4_2 1
+pre 18 29 35
+add 27 34
+del 18 29 35
+end
+action stack_4_3 1
+pre 28 34
+add 19 29 35
+del 28 34
+end
+action unstack_4_3 1
+pre 19 29 35
+add 28 34
+del 19 29 35
+end

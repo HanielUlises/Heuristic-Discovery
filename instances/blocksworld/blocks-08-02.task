@@ -1,0 +1,725 @@
+name blocks-08-02
+propositions 81
+prop 0 on_0_1
+prop 1 on_0_2
+prop 2 on_0_3
+prop 3 on_0_4
+prop 4 on_0_5
+prop 5 on_0_6
+prop 6 on_0_7
+prop 7 on_1_0
+prop 8 on_1_2
+prop 9 on_1_3
+prop 10 on_1_4
+prop 11 on_1_5
+prop 12 on_1_6
+prop 13 on_1_7
+prop 14 on_2_0
+prop 15 on_2_1
+prop 16 on_2_3
+prop 17 on_2_4
+prop 18 on_2_5
+prop 19 on_2_6
+prop 20 on_2_7
+prop 21 on_3_0
+prop 22 on_3_1
+prop 23 on_3_2
+prop 24 on_3_4
+prop 25 on_3_5
+prop 26 on_3_6
+prop 27 on_3_7
+prop 28 on_4_0
+prop 29 on_4_1
+prop 30 on_4_2
+prop 31 on_4_3
+prop 32 on_4_5
+prop 33 on_4_6
+prop 34 on_4_7
+prop 35 on_5_0
+prop 36 on_5_1
+prop 37 on_5_2
+prop 38 on_5_3
+prop 39 on_5_4
+prop 40 on_5_6
+prop 41 on_5_7
+prop 42 on_6_0
+prop 43 on_6_1
+prop 44 on_6_2
+prop 45 on_6_3
+prop 46 on_6_4
+prop 47 on_6_5
+prop 48 on_6_7
+prop 49 on_7_0
+prop 50 on_7_1
+prop 51 on_7_2
+prop 52 on_7_3
+prop 53 on_7_4
+prop 54 on_7_5
+prop 55 on_7_6
+prop 56 ontable_0
+prop 57 ontable_1
+prop 58 ontable_2
+prop 59 ontable_3
+prop 60 ontable_4
+prop 61 ontable_5
+prop 62 ontable_6
+prop 63 ontable_7
+prop 64 clear_0
+prop 65 clear_1
+prop 66 clear_2
+prop 67 clear_3
+prop 68 clear_4
+prop 69 clear_5
+prop 70 clear_6
+prop 71 clear_7
+prop 72 holding_0
+prop 73 holding_1
+prop 74 holding_2
+prop 75 holding_3
+prop 76 holding_4
+prop 77 holding_5
+prop 78 holding_6
+prop 79 holding_7
+prop 80 handempty
+init 41 47 51 56 57 58 59 60 64 65 67 68 70 80
+goal 12 27 38 56 58 60 62 63
+action pickup_0 1
+pre 56 64 80
+add 72
+del 56 64 80
+end
+action putdown_0 1
+pre 72
+add 56 64 80
+del 72
+end
+action stack_0_1 1
+pre 65 72
+add 0 64 80
+del 65 72
+end
+action unstack_0_1 1
+pre 0 64 80
+add 65 72
+del 0 64 80
+end
+action stack_0_2 1
+pre 66 72
+add 1 64 80
+del 66 72
+end
+action unstack_0_2 1
+pre 1 64 80
+add 66 72
+del 1 64 80
+end
+action stack_0_3 1
+pre 67 72
+add 2 64 80
+del 67 72
+end
+action unstack_0_3 1
+pre 2 64 80
+add 67 72
+del 2 64 80
+end
+action stack_0_4 1
+pre 68 72
+add 3 64 80
+del 68 72
+end
+action unstack_0_4 1
+pre 3 64 80
+add 68 72
+del 3 64 80
+end
+action stack_0_5 1
+pre 69 72
+add 4 64 80
+del 69 72
+end
+action unstack_0_5 1
+pre 4 64 80
+add 69 72
+del 4 64 80
+end
+action stack_0_6 1
+pre 70 72
+add 5 64 80
+del 70 72
+end
+action unstack_0_6 1
+pre 5 64 80
+add 70 72
+del 5 64 80
+end
+action stack_0_7 1
+pre 71 72
+add 6 64 80
+del 71 72
+end
+action unstack_0_7 1
+pre 6 64 80
+add 71 72
+del 6 64 80
+end
+action pickup_1 1
+pre 57 65 80
+add 73
+del 57 65 80
+end
+action putdown_1 1
+pre 73
+add 57 65 80
+del 73
+end
+action stack_1_0 1
+pre 64 73
+add 7 65 80
+del 64 73
+end
+action unstack_1_0 1
+pre 7 65 80
+add 64 73
+del 7 65 80
+end
+action stack_1_2 1
+pre 66 73
+add 8 65 80
+del 66 73
+end
+action unstack_1_2 1
+pre 8 65 80
+add 66 73
+del 8 65 80
+end
+action stack_1_3 1
+pre 67 73
+add 9 65 80
+del 67 73
+end
+action unstack_1_3 1
+pre 9 65 80
+add 67 73
+del 9 65 80
+end
+action stack_1_4 1
+pre 68 73
+add 10 65 80
+del 68 73
+end
+action unstack_1_4 1
+pre 10 65 80
+add 68 73
+del 10 65 80
+end
+action stack_1_5 1
+pre 69 73
+add 11 65 80
+del 69 73
+end
+action unstack_1_5 1
+pre 11 65 80
+add 69 73
+del 11 65 80
+end
+action stack_1_6 1
+pre 70 73
+add 12 65 80
+del 70 73
+end
+action unstack_1_6 1
+pre 12 65 80
+add 70 73
+del 12 65 80
+end
+action stack_1_7 1
+pre 71 73
+add 13 65 80
+del 71 73
+end
+action unstack_1_7 1
+pre 13 65 80
+add 71 73
+del 13 65 80
+end
+action pickup_2 1
+pre 58 66 80
+add 74
+del 58 66 80
+end
+action putdown_2 1
+pre 74
+add 58 66 80
+del 74
+end
+action stack_2_0 1
+pre 64 74
+add 14 66 80
+del 64 74
+end
+action unstack_2_0 1
+pre 14 66 80
+add 64 74
+del 14 66 80
+end
+action stack_2_1 1
+pre 65 74
+add 15 66 80
+del 65 74
+end
+action unstack_2_1 1
+pre 15 66 80
+add 65 74
+del 15 66 80
+end
+action stack_2_3 1
+pre 67 74
+add 16 66 80
+del 67 74
+end
+action unstack_2_3 1
+pre 16 66 80
+add 67 74
+del 16 66 80
+end
+action stack_2_4 1
+pre 68 74
+add 17 66 80
+del 68 74
+end
+action unstack_2_4 1
+pre 17 66 80
+add 68 74
+del 17 66 80
+end
+action stack_2_5 1
+pre 69 74
+add 18 66 80
+del 69 74
+end
+action unstack_2_5 1
+pre 18 66 80
+add 69 74
+del 18 66 80
+end
+action stack_2_6 1
+pre 70 74
+add 19 66 80
+del 70 74
+end
+action unstack_2_6 1
+pre 19 66 80
+add 70 74
+del 19 66 80
+end
+action stack_2_7 1
+pre 71 74
+add 20 66 80
+del 71 74
+end
+action unstack_2_7 1
+pre 20 66 80
+add 71 74
+del 20 66 80
+end
+action pickup_3 1
+pre 59 67 80
+add 75
+del 59 67 80
+end
+action putdown_3 1
+pre 75
+add 59 67 80
+del 75
+end
+action stack_3_0 1
+pre 64 75
+add 21 67 80
+del 64 75
+end
+action unstack_3_0 1
+pre 21 67 80
+add 64 75
+del 21 67 80
+end
+action stack_3_1 1
+pre 65 75
+add 22 67 80
+del 65 75
+end
+action unstack_3_1 1
+pre 22 67 80
+add 65 75
+del 22 67 80
+end
+action stack_3_2 1
+pre 66 75
+add 23 67 80
+del 66 75
+end
+action unstack_3_2 1
+pre 23 67 80
+add 66 75
+del 23 67 80
+end
+action stack_3_4 1
+pre 68 75
+add 24 67 80
+del 68 75
+end
+action unstack_3_4 1
+pre 24 67 80
+add 68 75
+del 24 67 80
+end
+action stack_3_5 1
+pre 69 75
+add 25 67 80
+del 69 75
+end
+action unstack_3_5 1
+pre 25 67 80
+add 69 75
+del 25 67 80
+end
+action stack_3_6 1
+pre 70 75
+add 26 67 80
+del 70 75
+end
+action unstack_3_6 1
+pre 26 67 80
+add 70 75
+del 26 67 80
+end
+action stack_3_7 1
+pre 71 75
+add 27 67 80
+del 71 75
+end
+action unstack_3_7 1
+pre 27 67 80
+add 71 75
+del 27 67 80
+end
+action pickup_4 1
+pre 60 68 80
+add 76
+del 60 68 80
+end
+action putdown_4 1
+pre 76
+add 60 68 80
+del 76
+end
+action stack_4_0 1
+pre 64 76
+add 28 68 80
+del 64 76
+end
+action unstack_4_0 1
+pre 28 68 80
+add 64 76
+del 28 68 80
+end
+action stack_4_1 1
+pre 65 76
+add 29 68 80
+del 65 76
+end
+action unstack_4_1 1
+pre 29 68 80
+add 65 76
+del 29 68 80
+end
+action stack_4_2 1
+pre 66 76
+add 30 68 80
+del 66 76
+end
+action unstack_4_2 1
+pre 30 68 80
+add 66 76
+del 30 68 80
+end
+action stack_4_3 1
+pre 67 76
+add 31 68 80
+del 67 76
+end
+action unstack_4_3 1
+pre 31 68 80
+add 67 76
+del 31 68 80
+end
+action stack_4_5 1
+pre 69 76
+add 32 68 80
+del 69 76
+end
+action unstack_4_5 1
+pre 32 68 80
+add 69 76
+del 32 68 80
+end
+action stack_4_6 1
+pre 70 76
+add 33 68 80
+del 70 76
+end
+action unstack_4_6 1
+pre 33 68 80
+add 70 76
+del 33 68 80
+end
+action stack_4_7 1
+pre 71 76
+add 34 68 80
+del 71 76
+end
+action unstack_4_7 1
+pre 34 68 80
+add 71 76
+del 34 68 80
+end
+action pickup_5 1
+pre 61 69 80
+add 77
+del 61 69 80
+end
+action putdown_5 1
+pre 77
+add 61 69 80
+del 77
+end
+action stack_5_0 1
+pre 64 77
+add 35 69 80
+del 64 77
+end
+action unstack_5_0 1
+pre 35 69 80
+add 64 77
+del 35 69 80
+end
+action stack_5_1 1
+pre 65 77
+add 36 69 80
+del 65 77
+end
+action unstack_5_1 1
+pre 36 69 80
+add 65 77
+del 36 69 80
+end
+action stack_5_2 1
+pre 66 77
+add 37 69 80
+del 66 77
+end
+action unstack_5_2 1
+pre 37 69 80
+add 66 77
+del 37 69 80
+end
+action stack_5_3 1
+pre 67 77
+add 38 69 80
+del 67 77
+end
+action unstack_5_3 1
+pre 38 69 80
+add 67 77
+del 38 69 80
+end
+action stack_5_4 1
+pre 68 77
+add 39 69 80
+del 68 77
+end
+action unstack_5_4 1
+pre 39 69 80
+add 68 77
+del 39 69 80
+end
+action stack_5_6 1
+pre 70 77
+add 40 69 80
+del 70 77
+end
+action unstack_5_6 1
+pre 40 69 80
+add 70 77
+del 40 69 80
+end
+action stack_5_7 1
+pre 71 77
+add 41 69 80
+del 71 77
+end
+action unstack_5_7 1
+pre 41 69 80
+add 71 77
+del 41 69 80
+end
+action pickup_6 1
+pre 62 70 80
+add 78
+del 62 70 80
+end
+action putdown_6 1
+pre 78
+add 62 70 80
+del 78
+end
+action stack_6_0 1
+pre 64 78
+add 42 70 80
+del 64 78
+end
+action unstack_6_0 1
+pre 42 70 80
+add 64 78
+del 42 70 80
+end
+action stack_6_1 1
+pre 65 78
+add 43 70 80
+del 65 78
+end
+action unstack_6_1 1
+pre 43 70 80
+add 65 78
+del 43 70 80
+end
+action stack_6_2 1
+pre 66 78
+add 44 70 80
+del 66 78
+end
+action unstack_6_2 1
+pre 44 70 80
+add 66 78
+del 44 70 80
+end
+action stack_6_3 1
+pre 67 78
+add 45 70 80
+del 67 78
+end
+action unstack_6_3 1
+pre 45 70 80
+add 67 78
+del 45 70 80
+end
+action stack_6_4 1
+pre 68 78
+add 46 70 80
+del 68 78
+end
+action unstack_6_4 1
+pre 46 70 80
+add 68 78
+del 46 70 80
+end
+action stack_6_5 1
+pre 69 78
+add 47 70 80
+del 69 78
+end
+action unstack_6_5 1
+pre 47 70 80
+add 69 78
+del 47 70 80
+end
+action stack_6_7 1
+pre 71 78
+add 48 70 80
+del 71 78
+end
+action unstack_6_7 1
+pre 48 70 80
+add 71 78
+del 48 70 80
+end
+action pickup_7 1
+pre 63 71 80
+add 79
+del 63 71 80
+end
+action putdown_7 1
+pre 79
+add 63 71 80
+del 79
+end
+action stack_7_0 1
+pre 64 79
+add 49 71 80
+del 64 79
+end
+action unstack_7_0 1
+pre 49 71 80
+add 64 79
+del 49 71 80
+end
+action stack_7_1 1
+pre 65 79
+add 50 71 80
+del 65 79
+end
+action unstack_7_1 1
+pre 50 71 80
+add 65 79
+del 50 71 80
+end
+action stack_7_2 1
+pre 66 79
+add 51 71 80
+del 66 79
+end
+action unstack_7_2 1
+pre 51 71 80
+add 66 79
+del 51 71 80
+end
+action stack_7_3 1
+pre 67 79
+add 52 71 80
+del 67 79
+end
+action unstack_7_3 1
+pre 52 71 80
+add 67 79
+del 52 71 80
+end
+action stack_7_4 1
+pre 68 79
+add 53 71 80
+del 68 79
+end
+action unstack_7_4 1
+pre 53 71 80
+add 68 79
+del 53 71 80
+end
+action stack_7_5 1
+pre 69 79
+add 54 71 80
+del 69 79
+end
+action unstack_7_5 1
+pre 54 71 80
+add 69 79
+del 54 71 80
+end
+action stack_7_6 1
+pre 70 79
+add 55 71 80
+del 70 79
+end
+action unstack_7_6 1
+pre 55 71 80
+add 70 79
+del 55 71 80
+end

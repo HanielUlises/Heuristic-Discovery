@@ -1,0 +1,40 @@
+{
+  "schema": "hd.benchmark_suite/1",
+  "name": "blocksworld",
+  "description": "Blocksworld, 4 instances for each of 5 block counts, generated from base seed 20240101.",
+  "metadata": {
+    "domain": "blocksworld",
+    "generator": "hd.domains.blocksworld",
+    "base_seed": 20240101,
+    "block_counts": [
+      5,
+      6,
+      7,
+      8,
+      9
+    ],
+    "instances_per_size": 4
+  },
+  "instances": [
+    "instances/blocksworld/blocks-05-00.task",
+    "instances/blocksworld/blocks-05-01.task",
+    "instances/blocksworld/blocks-05-02.task",
+    "instances/blocksworld/blocks-05-03.task",
+    "instances/blocksworld/blocks-06-00.task",
+    "instances/blocksworld/blocks-06-01.task",
+    "instances/blocksworld/blocks-06-02.task",
+    "instances/blocksworld/blocks-06-03.task",
+    "instances/blocksworld/blocks-07-00.task",
+    "instances/blocksworld/blocks-07-01.task",
+    "instances/blocksworld/blocks-07-02.task",
+    "instances/blocksworld/blocks-07-03.task",
+    "instances/blocksworld/blocks-08-00.task",
+    "instances/blocksworld/blocks-08-01.task",
+    "instances/blocksworld/blocks-08-02.task",
+    "instances/blocksworld/blocks-08-03.task",
+    "instances/blocksworld/blocks-09-00.task",
+    "instances/blocksworld/blocks-09-01.task",
+    "instances/blocksworld/blocks-09-02.task",
+    "instances/blocksworld/blocks-09-03.task"
+  ]
+}
