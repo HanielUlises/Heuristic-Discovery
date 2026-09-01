@@ -13,6 +13,7 @@
 #include <string_view>
 #include <vector>
 
+#include "hd/landmarks.hpp"
 #include "hd/strips.hpp"
 
 namespace hd {
@@ -24,6 +25,7 @@ enum class FeatureId : std::size_t {
   kTruePropositions,
   kRelaxedLayers,   // h_max under unit-cost relaxed planning graph layers
   kRelaxedSum,      // h_add-style sum of per-goal relaxed layers
+  kLandmarkCost,    // uniform cost partition over relaxed-reachability landmarks
   kCount
 };
 
@@ -32,6 +34,7 @@ inline constexpr std::size_t kNumFeatures = static_cast<std::size_t>(FeatureId::
 inline constexpr std::array<std::string_view, kNumFeatures> kFeatureNames = {
     "unsatisfied_goals", "achieved_goals", "applicable_actions",
     "true_propositions", "relaxed_layers", "relaxed_sum",
+    "landmark_cost",
 };
 
 inline constexpr std::array<std::string_view, kNumFeatures> kFeatureDescriptions = {
@@ -41,6 +44,7 @@ inline constexpr std::array<std::string_view, kNumFeatures> kFeatureDescriptions
     "number of propositions true in s",
     "layers of the delete-relaxed planning graph until all goals appear (h_max-like)",
     "sum over goals of the layer at which each first appears (h_add-like)",
+    "uniform cost partition over the landmarks of s; admissible on its own",
 };
 
 // Value substituted for a goal that is unreachable in the delete relaxation.
@@ -64,7 +68,10 @@ inline std::string_view feature_name(FeatureId id) {
 class FeatureEvaluator {
  public:
   explicit FeatureEvaluator(const StripsTask& task)
-      : task_(&task), level_(task.num_propositions(), -1), counter_(task.num_actions(), 0) {}
+      : task_(&task),
+        landmarks_(task),
+        level_(task.num_propositions(), -1),
+        counter_(task.num_actions(), 0) {}
 
   double evaluate(FeatureId id, const StripsState& s) const {
     switch (id) {
@@ -82,6 +89,13 @@ class FeatureEvaluator {
       case FeatureId::kRelaxedSum:
         build_relaxed_graph(s);
         return relaxed_sum_;
+      case FeatureId::kLandmarkCost: {
+        // The factory reports a proven dead end as an unbounded cost; the
+        // feature vocabulary expresses that as its own large finite constant,
+        // so every feature stays total and comparable.
+        const double v = landmarks_.value(s);
+        return v == kUnboundedCost ? kUnreachableValue : v;
+      }
       case FeatureId::kCount:
         break;
     }
@@ -152,6 +166,7 @@ class FeatureEvaluator {
   }
 
   const StripsTask* task_;
+  LandmarkFactory landmarks_;
   mutable std::vector<int> level_;
   mutable std::vector<unsigned char> counter_;
   mutable StripsState cache_key_{};

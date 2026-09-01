@@ -38,7 +38,7 @@ inline const char* algorithm_name(SearchAlgorithm a) {
 // A heuristic is either one of the named baselines or an explicit linear
 // combination of features, which is what the discovery loop proposes.
 struct HeuristicSpec {
-  enum class Kind { kZero, kGoalCount, kRelaxedLayers, kLinear };
+  enum class Kind { kZero, kGoalCount, kRelaxedLayers, kLandmarkCost, kLinear };
   Kind kind = Kind::kZero;
   std::vector<LinearHeuristic::Term> terms;
 
@@ -47,6 +47,7 @@ struct HeuristicSpec {
       case Kind::kZero: return "zero";
       case Kind::kGoalCount: return "goal_count";
       case Kind::kRelaxedLayers: return "relaxed_layers";
+      case Kind::kLandmarkCost: return "landmark_cost";
       case Kind::kLinear: return "linear";
     }
     return "unknown";
@@ -66,6 +67,10 @@ inline HeuristicSpec parse_heuristic_spec(const std::string& spec) {
   }
   if (spec == "relaxed_layers") {
     out.kind = HeuristicSpec::Kind::kRelaxedLayers;
+    return out;
+  }
+  if (spec == "landmark_cost") {
+    out.kind = HeuristicSpec::Kind::kLandmarkCost;
     return out;
   }
 
@@ -106,22 +111,30 @@ inline std::string heuristic_to_string(const HeuristicSpec& spec) {
   return out;
 }
 
+// Instantiates the heuristic named by `spec` and hands it to `fn`. The
+// heuristic type is a template parameter of `fn`, so evaluation stays inlined
+// and no virtual call is introduced by the dispatch.
+template <class F>
+auto with_heuristic(const StripsTask& task, const HeuristicSpec& spec, F&& fn) {
+  switch (spec.kind) {
+    case HeuristicSpec::Kind::kZero: return fn(ZeroHeuristic{});
+    case HeuristicSpec::Kind::kGoalCount: return fn(GoalCountHeuristic(task));
+    case HeuristicSpec::Kind::kRelaxedLayers: return fn(RelaxedLayersHeuristic(task));
+    case HeuristicSpec::Kind::kLandmarkCost: return fn(LandmarkCostHeuristic(task));
+    case HeuristicSpec::Kind::kLinear: return fn(LinearHeuristic(task, spec.terms));
+  }
+  throw std::runtime_error("unreachable heuristic kind");
+}
+
 // Runs one (algorithm, heuristic) pair on one task.
 inline SearchResult run_search(const StripsTask& task, SearchAlgorithm algorithm,
                                const HeuristicSpec& spec, const SearchLimits& limits) {
   if (algorithm == SearchAlgorithm::kBfs) return breadth_first_search(task, limits);
 
-  const auto dispatch = [&](const auto& h) {
+  return with_heuristic(task, spec, [&](const auto& h) {
     return algorithm == SearchAlgorithm::kGbfs ? greedy_best_first_search(task, h, limits)
                                                : a_star(task, h, limits);
-  };
-  switch (spec.kind) {
-    case HeuristicSpec::Kind::kZero: return dispatch(ZeroHeuristic{});
-    case HeuristicSpec::Kind::kGoalCount: return dispatch(GoalCountHeuristic(task));
-    case HeuristicSpec::Kind::kRelaxedLayers: return dispatch(RelaxedLayersHeuristic(task));
-    case HeuristicSpec::Kind::kLinear: return dispatch(LinearHeuristic(task, spec.terms));
-  }
-  throw std::runtime_error("unreachable heuristic kind");
+  });
 }
 
 inline std::string heuristic_json(const HeuristicSpec& spec) {

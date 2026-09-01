@@ -53,6 +53,32 @@ del 2
 end
 )";
 
+// One action achieves both goals at once, and a two-step route achieves them
+// one at a time for the same total cost. Counting unachieved landmarks returns
+// 2 here while the optimal plan costs 1, which is the case that makes a naive
+// landmark count inadmissible.
+inline const char* kJointTask = R"(
+name joint
+propositions 3
+prop 0 start
+prop 1 left
+prop 2 right
+init 0
+goal 1 2
+action both 1
+pre 0
+add 1 2
+end
+action take_left 1
+pre 0
+add 1
+end
+action take_right 1
+pre 0
+add 2
+end
+)";
+
 // Goal proposition that no action ever adds: unsolvable, and a relaxed dead end.
 inline const char* kUnsolvableTask = R"(
 name unsolvable

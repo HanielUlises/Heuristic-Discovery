@@ -4,6 +4,7 @@ from typing import Optional
 
 import pytest
 
+from hd.admissibility import Verifier
 from hd.paths import ROOT
 from hd.planner import Planner, PlannerRun, RunMetrics
 
@@ -54,6 +55,15 @@ def planner() -> Planner:
     """The compiled planner, skipping the test when it has not been built."""
     try:
         return Planner()
+    except FileNotFoundError as error:
+        pytest.skip(str(error))
+
+
+@pytest.fixture(scope="session")
+def verifier() -> Verifier:
+    """The compiled verifier, skipping the test when it has not been built."""
+    try:
+        return Verifier()
     except FileNotFoundError as error:
         pytest.skip(str(error))
 

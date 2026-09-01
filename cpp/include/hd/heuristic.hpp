@@ -46,6 +46,22 @@ class RelaxedLayersHeuristic {
   FeatureEvaluator eval_;
 };
 
+// h(s) = the uniform cost partition over the landmarks of s. Admissible and,
+// unlike the relaxed-graph baselines, a lower bound that prices actions rather
+// than counting layers. It is also the first component intended to enter a
+// cost partition over several heuristics, where its weight is its share of the
+// action costs.
+class LandmarkCostHeuristic {
+ public:
+  explicit LandmarkCostHeuristic(const StripsTask& task) : eval_(task) {}
+  double operator()(const StripsState& s) const {
+    return eval_.evaluate(FeatureId::kLandmarkCost, s);
+  }
+
+ private:
+  FeatureEvaluator eval_;
+};
+
 // h_theta(s) = sum_i w_i f_i(s), the object the discovery loop searches over.
 // Only features with a non-zero weight are evaluated, so an unused expensive
 // feature costs nothing.

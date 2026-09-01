@@ -183,10 +183,12 @@ Phase I establishes the infrastructure and the baseline result. It provides:
 
 - a propositional STRIPS engine with breadth-first search, greedy best-first
   search, and A\*;
-- six interpretable state features and three baseline heuristics (zero,
-  goal count, and delete-relaxed layers);
+- seven interpretable state features and four baseline heuristics (zero,
+  goal count, delete-relaxed layers, and the landmark bound of §6.1);
 - a Blocksworld benchmark generator and a fixed 20-instance suite;
 - structured JSON metrics for every planner execution;
+- an exact-`h*` oracle and an admissibility verifier for instances small
+  enough to enumerate;
 - a Python research layer with the objective, three derivative-free optimisers
   (random search, randomised local search, exhaustive grid), and reproducible
   experiment records;
@@ -214,6 +216,7 @@ which $p$ first appears.
 | `true_propositions` | $\lvert s \rvert$ |
 | `relaxed_layers` | $\max_{p \in G} \ell(p, s)$, an $h_{\max}$-like distance |
 | `relaxed_sum` | $\sum_{p \in G} \ell(p, s)$, an $h_{\mathrm{add}}$-like distance |
+| `landmark_cost` | uniform cost partition over the landmarks of $s$ (§6.1) |
 
 A goal proposition $p \notin s^{+}$ is unreachable even under the relaxation, so
 $s$ is a proven dead end; such a $p$ contributes a large finite constant, which
@@ -226,6 +229,7 @@ keeps every heuristic total and comparable without saturating the arithmetic.
 | `zero` | $h(s) = 0$; reduces A\* to uniform-cost search, the control condition |
 | `goal_count` | $h(s) = \lvert G \setminus s \rvert$ |
 | `relaxed_layers` | $h(s) = \max_{p \in G} \ell(p, s)$; domain-independent and admissible |
+| `landmark_cost` | the landmark bound of §6.1; admissible, and the strongest baseline here |
 
 These are the reference points against which discovered heuristics are reported.
 
@@ -234,7 +238,9 @@ These are the reference points against which discovered heuristics are reported.
 The committed suite holds $m = 20$ Blocksworld instances of five sizes, five to
 nine blocks, generated from a fixed base seed. Under greedy best-first search
 with a budget of $2 \times 10^{5}$ expansions per instance, the baselines
-perform as follows.
+perform as follows. This section predates `landmark_cost`, and both the table
+and the optimisation below range over the six features that existed then; the
+search space is now seven-dimensional.
 
 | Heuristic | Solved | Expanded | Generated | Cost | Time |
 | --- | ---: | ---: | ---: | ---: | ---: |
@@ -272,7 +278,125 @@ that the fitted weights are not purely an artefact of the instances the
 optimiser observed, but a single split of five instances supports nothing
 stronger than that.
 
-## 6. Reproducibility
+## 6. Admissibility
+
+Section 5 says nothing about admissibility, and no search run can. A heuristic
+that overestimates still returns plans, often quickly; A\* simply returns
+suboptimal ones and reports nothing unusual. The property is a statement about
+`h*`, which on instances small enough to enumerate is computable exactly:
+expand every reachable state, then run a backward Dijkstra from the goal states
+over the reversed transition relation. `hd_verify` does this and checks each
+heuristic against the result.
+
+```
+hd_verify --instance instances/blocksworld/blocks-05-00.task \
+          --heuristic goal_count --heuristic relaxed_layers
+python -m hd.experiments.verify_admissibility --max-states 1000000
+```
+
+Three properties are reported per instance: admissibility (`h(s) <= h*(s)` at
+every reachable state), consistency (`h(u) <= c(u,v) + h(v)` across every
+transition, which is what lets A\* close a state on first expansion), and
+informedness, the mean `h/h*` over states with a finite non-zero goal distance.
+Among admissible candidates informedness is the quantity that predicts A\*
+expansions, and unlike expansions it is dense, deterministic, and obtained
+without running a search.
+
+Enumeration reaches eight blocks: at a ceiling of $10^6$ states, 16 of the 20
+committed instances are enumerable — 695417 states for the largest — and the
+three cheap baselines are checked over all of them in about 22 seconds. The
+table below uses the twelve instances up to seven blocks, where every heuristic
+including the expensive one is checked on the same 295648 states (42 seconds).
+
+| Heuristic | Verdict | Violations | Informedness |
+| --- | --- | ---: | ---: |
+| `zero` | admissible, consistent | 0 | 0.000 |
+| `goal_count` | admissible, consistent | 0 | 0.419 |
+| `relaxed_layers` | admissible, consistent | 0 | 0.442 |
+| `landmark_cost` | admissible, inconsistent | 0 | 0.601 |
+| $\theta^{\star}$ of §5 | inadmissible | 3077314 | 12.657 |
+
+The row for $\theta^{\star}$ is measured over the 16 enumerable instances: it
+overestimates at every one of the 3077314 reachable states it was checked on,
+by up to 289.29, and values the goal state itself at 59.77 rather than 0. This is not a defect of the optimiser: greedy
+best-first search orders nodes by `h` alone, so the objective of §2.3 is
+indifferent to admissibility, and §2.4 makes `θ` identifiable only up to a
+positive scalar, which admissibility is not invariant to. The result is a
+satisficing one and only ever was.
+
+Two asymmetries should be kept in view. A violation is a certificate: the
+witness state settles the question for good. A clean report establishes only
+that no counterexample exists among the instances that could be enumerated,
+and is reported as *not falsified* rather than as proof. And enumeration is
+exponential in instance size, so the check is available exactly where search is
+easy — which is why a hypothesis class whose members are admissible *by
+construction* is worth more than a class that has to be tested.
+
+The present class does not have that property. Admissibility forces `h` to
+vanish on goal states, where `achieved_goals`, `true_propositions` and
+`applicable_actions` are all non-zero, so three of the seven weights must be zero
+before anything else is considered; and the sum of two admissible heuristics is
+in general not admissible, which leaves little inside `h_θ` to discover.
+Constructing an admissible class — cost partitioning over structurally
+distinct admissible components — is recorded in `DEVELOPMENT.md`.
+
+### 6.1 The landmark component
+
+A landmark of a state $s$ is a proposition true at some point in every plan
+from $s$. Landmarks are generated here by relaxed reachability: $p$ is a
+landmark iff the goal is unreachable in the delete relaxation from $s$ once
+every action adding $p$ is removed. The test is sound — every real plan is also
+a relaxed plan, so a fact all relaxed plans need is a fact all plans need — and
+incomplete in two ways that cost informedness but not admissibility: it finds
+only single-fact landmarks, and it misses those whose necessity depends on
+delete effects.
+
+*Counting* the unachieved landmarks is not admissible, because one action may
+achieve several at once. The value used is the uniform cost partition over
+landmarks (Karpas and Domshlak, 2009): each action divides its cost equally
+among the landmarks it can achieve, and each landmark contributes the cheapest
+share any of its achievers assigns it,
+
+```math
+h_{\mathrm{LM}}(s) \;=\; \sum_{L \,\in\, \mathrm{LM}(s)} \;
+\min_{a \,:\, L \in \mathrm{add}(a)}
+\frac{c(a)}{\lvert \mathrm{add}(a) \cap \mathrm{LM}(s) \rvert}.
+```
+
+Every plan achieves every landmark, and the shares one action hands out sum to
+at most its own cost, so the total is a lower bound. The unit test that pins
+this down is a task where one action achieves both goals: counting returns 2
+against an optimal cost of 1 and is falsified by the verifier, while the
+partition returns exactly 1.
+
+Under A\* on the eight instances of seven and eight blocks, all three
+admissible baselines return optimal plans of total cost 114:
+
+| Heuristic | Expanded | Reopened | Time |
+| --- | ---: | ---: | ---: |
+| `goal_count` | 39607 | 0 | 0.05 s |
+| `relaxed_layers` | 113684 | 0 | 0.97 s |
+| `landmark_cost` | 7074 | 669 | 1.34 s |
+
+The bound is much better informed per node and much more expensive per node:
+landmarks are regenerated from scratch at every state, since the framework
+requires $h$ to be a function of the state alone, and that costs one relaxed
+reachability test per candidate proposition. Making it competitive in runtime,
+rather than only in expansions, is a separate problem from making it admissible.
+
+The reopenings are the visible consequence of the one property the verifier
+denies it: `landmark_cost` is admissible but *not consistent*. State-generated
+landmark sets do not vary monotonically along a transition, so $h$ can fall by
+more than the cost of the edge, and A\* must reopen closed states. It remains
+correct; it loses the guarantee that a state is closed once.
+
+Because $h_{\mathrm{LM}}$ is linear in the action costs, evaluating it under
+costs $w \cdot c$ multiplies it by exactly $w$. That is precisely what a cost
+partition over several components requires, and the linear class already
+supplies the weight — which is why this is the first component of the class
+described in `DEVELOPMENT.md`, and not merely another baseline.
+
+## 7. Reproducibility
 
 Every experiment writes a single self-describing JSON record containing the
 random seed, the search algorithm and resource budgets, the objective weights,
@@ -288,10 +412,11 @@ and benchmark instances are a pure function of their generator seed. A
 discovered heuristic serialises to JSON or YAML and, reloaded, reproduces its
 metrics exactly.
 
-## 7. Repository conventions
+## 8. Repository conventions
 
 The C++ engine lives under `cpp/` (headers in `cpp/include/hd/`, the
-executable and platform code in `cpp/src/`, unit tests in `cpp/tests/`), the
+executables `hd_plan` and `hd_verify` with the platform code in `cpp/src/`,
+unit tests in `cpp/tests/`), the
 Python research layer under `python/hd/` with its tests in `python/tests/` and
 runnable experiments in `python/hd/experiments/`. Generated instances are in
 `instances/`, suite manifests in `benchmarks/`, experiment records in
@@ -301,6 +426,6 @@ Design decisions, their justifications, and the next research iteration are
 recorded in `DEVELOPMENT.md`. The task file format and the JSON schemas are
 specified in `docs/format.md`.
 
-## 8. Licence
+## 9. Licence
 
 MIT. See `LICENSE`.

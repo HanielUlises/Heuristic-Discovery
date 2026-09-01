@@ -22,7 +22,7 @@ Usage:
 Options:
   --instance FILE          Task file (repeatable; all runs share one JSON output).
   --search NAME            bfs | gbfs | astar            (default: gbfs)
-  --heuristic SPEC         zero | goal_count | relaxed_layers
+  --heuristic SPEC         zero | goal_count | relaxed_layers | landmark_cost
                            | [linear:]name=w,name=w,...  (default: zero)
   --max-expansions N       Expansion budget, 0 for unlimited (default: 1000000)
   --time-limit SECONDS     Wall-clock budget, 0 for unlimited (default: 60)

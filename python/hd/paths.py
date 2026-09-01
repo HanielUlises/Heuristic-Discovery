@@ -21,37 +21,43 @@ INSTANCE_DIR = ROOT / "instances"
 BENCHMARK_DIR = ROOT / "benchmarks"
 RESULTS_DIR = ROOT / "results"
 
-_BINARY_CANDIDATES = (
-    Path("build/hd_plan"),
-    Path("build/Release/hd_plan"),
-    Path("cmake-build-release/hd_plan"),
-    Path("build/hd_plan.exe"),
-)
+#: Directories searched for a compiled executable, relative to the repository root.
+_BUILD_DIRS = (Path("build"), Path("build/Release"), Path("cmake-build-release"))
 
 
-def planner_binary() -> Path:
-    """Path of the ``hd_plan`` executable.
+def _find_binary(name: str, env_var: str) -> Path:
+    """Locates a compiled executable, honouring an environment override.
 
-    ``HD_PLANNER_BINARY`` overrides the search, which is what continuous
+    ``env_var`` takes precedence over the search, which is what continuous
     integration and out-of-tree builds should set.
     """
-    override = os.environ.get("HD_PLANNER_BINARY")
+    override = os.environ.get(env_var)
     if override:
         path = Path(override)
         if not path.exists():
-            raise FileNotFoundError(f"HD_PLANNER_BINARY points at a missing file: {path}")
+            raise FileNotFoundError(f"{env_var} points at a missing file: {path}")
         return path
 
-    for relative in _BINARY_CANDIDATES:
-        candidate = ROOT / relative
-        if candidate.exists():
-            return candidate
+    for directory in _BUILD_DIRS:
+        for candidate in (ROOT / directory / name, ROOT / directory / f"{name}.exe"):
+            if candidate.exists():
+                return candidate
 
     raise FileNotFoundError(
-        "hd_plan was not found. Build it with:\n"
+        f"{name} was not found. Build it with:\n"
         "    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release && cmake --build build -j\n"
-        "or set HD_PLANNER_BINARY to an existing executable."
+        f"or set {env_var} to an existing executable."
     )
+
+
+def planner_binary() -> Path:
+    """Path of the ``hd_plan`` executable."""
+    return _find_binary("hd_plan", "HD_PLANNER_BINARY")
+
+
+def verifier_binary() -> Path:
+    """Path of the ``hd_verify`` executable."""
+    return _find_binary("hd_verify", "HD_VERIFIER_BINARY")
 
 
 def relative_to_root(path: Path | str) -> str:
