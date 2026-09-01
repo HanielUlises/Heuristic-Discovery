@@ -302,6 +302,14 @@ Among admissible candidates informedness is the quantity that predicts A\*
 expansions, and unlike expansions it is dense, deterministic, and obtained
 without running a search.
 
+![Admissibility and informedness](docs/figures/admissibility.svg)
+
+**Figure 1.** Where a heuristic is allowed to lie. Admissibility confines it to
+the region below $h = h^{*}$, and informedness measures how close to that
+boundary it gets. Each ray has the gradient of one heuristic's mean $h/h^{*}$
+over the twelve instances of the table below; `zero` is the horizontal axis
+itself. The $\theta^{\star}$ of §5 leaves the region immediately.
+
 Enumeration reaches eight blocks: at a ceiling of $10^6$ states, 16 of the 20
 committed instances are enumerable — 695417 states for the largest — and the
 three cheap baselines are checked over all of them in about 22 seconds. The
@@ -351,6 +359,13 @@ incomplete in two ways that cost informedness but not admissibility: it finds
 only single-fact landmarks, and it misses those whose necessity depends on
 delete effects.
 
+![Landmark generation by relaxed reachability](docs/figures/landmarks.svg)
+
+**Figure 2.** The test that generates a landmark. Both panels live in the
+delete relaxation, where reachability is cheap to decide and monotone, so the
+question "is the goal still reachable without $p$?" is answered by one fixpoint
+per candidate proposition.
+
 *Counting* the unachieved landmarks is not admissible, because one action may
 achieve several at once. The value used is the uniform cost partition over
 landmarks (Karpas and Domshlak, 2009): each action divides its cost equally
@@ -364,10 +379,15 @@ h_{\mathrm{LM}}(s) \;=\; \sum_{L \,\in\, \mathrm{LM}(s)} \;
 ```
 
 Every plan achieves every landmark, and the shares one action hands out sum to
-at most its own cost, so the total is a lower bound. The unit test that pins
-this down is a task where one action achieves both goals: counting returns 2
-against an optimal cost of 1 and is falsified by the verifier, while the
-partition returns exactly 1.
+at most its own cost, so the total is a lower bound.
+
+![Counting against pricing landmarks](docs/figures/partition.svg)
+
+**Figure 3.** The case that separates the two, and the task the unit tests use.
+`both` achieves the two goals at once, and each goal also has a single-goal
+achiever of its own. Counting the unachieved landmarks returns 2 against an
+optimal cost of 1, and the verifier falsifies it; dividing the cost of `both`
+between the landmarks it achieves returns exactly 1.
 
 Under A\* on the eight instances of seven and eight blocks, all three
 admissible baselines return optimal plans of total cost 114:
@@ -420,7 +440,10 @@ unit tests in `cpp/tests/`), the
 Python research layer under `python/hd/` with its tests in `python/tests/` and
 runnable experiments in `python/hd/experiments/`. Generated instances are in
 `instances/`, suite manifests in `benchmarks/`, experiment records in
-`results/`, and file-format documentation in `docs/`.
+`results/`, and file-format documentation in `docs/`. The figures are TikZ
+sources in `docs/figures/`, with the SVGs they generate committed beside them
+so that the README renders without a LaTeX toolchain; `docs/figures/build.sh`
+regenerates them.
 
 Design decisions, their justifications, and the next research iteration are
 recorded in `DEVELOPMENT.md`. The task file format and the JSON schemas are

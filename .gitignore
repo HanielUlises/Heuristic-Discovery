@@ -17,6 +17,11 @@ venv/
 # Experiment output (records are kept only when deliberately committed)
 results/*.json
 
+# Figure intermediates; the .tex sources and generated .svg are committed
+docs/figures/*.aux
+docs/figures/*.log
+docs/figures/*.pdf
+
 # Editors and OS
 .vscode/
 .idea/
