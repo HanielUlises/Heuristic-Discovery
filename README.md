@@ -166,8 +166,9 @@ Phase I establishes the infrastructure and the baseline result. It provides:
 
 - a propositional STRIPS engine with breadth-first search, greedy best-first
   search, and A\*;
-- seven interpretable state features and four baseline heuristics (zero,
-  goal count, delete-relaxed layers, and the landmark bound of §6.1);
+- seven interpretable state features and five baseline heuristics (zero, goal
+  count, delete-relaxed layers, the landmark bound of §6.1 and the pattern
+  databases of §6.2);
 - a Blocksworld benchmark generator and a fixed 20-instance suite;
 - structured JSON metrics for every planner execution;
 - an exact-`h*` oracle and an admissibility verifier for instances small
@@ -213,6 +214,7 @@ keeps every heuristic total and comparable without saturating the arithmetic.
 | `goal_count` | $h(s) = \lvert G \setminus s \rvert$ |
 | `relaxed_layers` | $h(s) = \max_{p \in G} \ell(p, s)$; domain-independent and admissible |
 | `landmark_cost` | the landmark bound of §6.1; admissible, and the strongest baseline here |
+| `pdb` | the maximum over the pattern databases of §6.2; admissible and consistent |
 
 These are the reference points against which discovered heuristics are reported.
 
@@ -307,6 +309,7 @@ including the expensive one is checked on the same 295648 states (42 seconds).
 | `goal_count` | admissible, consistent | 0 | 0.419 |
 | `relaxed_layers` | admissible, consistent | 0 | 0.442 |
 | `landmark_cost` | admissible, inconsistent | 0 | 0.601 |
+| `pdb` | admissible, consistent | 0 | 0.488 |
 | $\theta^{\star}$ of §5 | inadmissible | 3077314 | 12.657 |
 
 The row for $\theta^{\star}$ is measured over the 16 enumerable instances: it
@@ -330,7 +333,9 @@ goal states, where `achieved_goals`, `true_propositions` and
 `applicable_actions` are all non-zero, so three of the seven weights must be
 zero before anything else is considered. The sum of two admissible heuristics
 is in general not admissible either, which leaves little inside `h_θ` to
-discover. `DEVELOPMENT.md` records what an admissible class would take.
+discover. §6.4 says what an admissible class needs and §6.5 builds one: under a
+cost partition the sum of the components is admissible by construction, and the
+object left to discover is the order the components are paid in.
 
 ### 6.1 The landmark component
 
@@ -376,51 +381,210 @@ achiever of its own. Counting the unachieved landmarks returns 2 against an
 optimal cost of 1, and the verifier falsifies it; dividing the cost of `both`
 between the landmarks it achieves returns exactly 1.
 
-Under A\* on the eight instances of seven and eight blocks, all three
-admissible baselines return optimal plans of total cost 114:
-
-| Heuristic | Expanded | Reopened | Time |
-| --- | ---: | ---: | ---: |
-| `goal_count` | 39607 | 0 | 0.05 s |
-| `relaxed_layers` | 113684 | 0 | 0.97 s |
-| `landmark_cost` | 7074 | 669 | 1.34 s |
-
-The bound is much better informed per node and much more expensive per node.
 Landmarks are regenerated from scratch at every state, because the framework
 requires $h$ to be a function of the state alone, and that costs one relaxed
 reachability test per candidate proposition. Making the component competitive
 in runtime is a separate problem from making it admissible, and it is not
 solved here.
 
-The reopenings come from the one property the verifier denies it:
-`landmark_cost` is admissible but *not consistent*. Landmark sets generated
-from the state do not vary monotonically along a transition, so $h$ can fall by
-more than the cost of an edge and A\* has to reopen closed states. The search is
-still correct, but it loses the guarantee that a state is closed once.
+The verifier denies the component one property: `landmark_cost` is admissible
+but *not consistent*. Landmark sets generated from the state do not vary
+monotonically along a transition, so $h$ can fall by more than the cost of an
+edge, and A\* loses the guarantee that a state is closed on first expansion.
+The search is still correct.
 
-This is the first component of a cost partition rather than merely another
-baseline, but the linear class of §2.2 is not the partition it belongs to.
-Scaling every action cost by one weight $w$ multiplies $h_{\mathrm{LM}}$ by
-exactly $w$, so a per-component weight vector on the simplex ($w_i \ge 0$,
-$\sum_i w_i \le 1$) does yield an admissible $\sum_i w_i h_i$; but that value
-is a convex combination, and
+### 6.2 The pattern database component
+
+A pattern is a subset $P$ of the propositions. Projecting the task onto $P$
+keeps only the part of every state, precondition and effect that lies inside
+it:
+
+```math
+\mathrm{proj}(s) = s \cap P, \qquad
+\mathrm{proj}(a) = \langle\, \mathrm{pre}(a) \cap P,\;
+\mathrm{add}(a) \cap P,\; \mathrm{del}(a) \cap P \,\rangle .
+```
+
+The projection is a homomorphism, because intersection distributes over the
+STRIPS transition, and a projected precondition is weaker than the concrete
+one. Every concrete plan therefore maps to an abstract plan of the same cost,
+the abstract goal distance is at most the concrete one, and reading it off is
+admissible. It is also consistent, which no argument about landmarks can give.
+
+The table is the exact goal distance of every abstract state, computed by the
+same enumeration and backward Dijkstra that §6 runs on the concrete task. The
+one difference is that a goal state of the abstraction has to be expanded
+rather than treated as terminal: a concrete state that is not a goal can
+project onto an abstract goal state, and the states beyond it would otherwise
+be missing from the table. The cost is exponential in $\lvert P \rvert$, so a
+pattern stays small; it is paid once, before search, and every evaluation
+afterwards is a mask and a lookup.
+
+Patterns are built by bounded causal closure: seed one goal condition, add the
+preconditions of the actions that achieve it, then the preconditions of the
+actions that achieve those, up to a budget of twelve propositions. The closure
+is what makes the abstraction see why a proposition is hard to reach. With the
+seed alone every achiever has an empty precondition and the database can only
+count, which is worth 0.370 informedness on `blocks-05-00` against 0.655 for
+the closure. Raising the budget keeps helping (0.745 at eighteen), which says
+that pattern selection matters more than any of these numbers. It is a research
+problem of its own and nothing here attempts to solve it.
+
+### 6.3 The components compared
+
+On the four instances of seven blocks, verified over the same 263958 states and
+searched with A\*, which returns optimal plans of total cost 60 in every case:
+
+| Heuristic | Informedness | Expanded | Lower $g$ | Time |
+| --- | ---: | ---: | ---: | ---: |
+| `goal_count` | 0.367 | 15451 | 0 | 0.01 s |
+| `relaxed_layers` | 0.344 | 28689 | 0 | 0.12 s |
+| `pdb` | 0.339 | 18341 | 882 | 0.02 s |
+| `landmark_cost` | 0.520 | 4166 | 378 | 0.43 s |
+
+Informedness orders the components about as expansions do, which is what makes
+it usable as an objective. The `pdb` and `relaxed_layers` rows are separated by
+0.005 and swap places, so the agreement is on the ordering rather than the
+margins.
+
+The *lower $g$* column counts states rediscovered along a cheaper path. It is
+not a measure of inconsistency: `pdb` is consistent by construction and records
+882 of them, while `zero` and `goal_count` record none. What it tracks is how
+depth-first the search order becomes, so a better informed heuristic tends to
+produce more of them.
+
+`pdb` is cheap and consistent but weakly informed with these patterns, and
+`landmark_cost` is the reverse. Neither is the point. The maximum of a set of
+admissible components is admissible, and it is the control that a cost
+partition over the same components has to beat, which is why `pdb` takes the
+maximum over its patterns instead of summing them.
+
+### 6.4 What a partition needs
+
+The linear class of §2.2 is not the partition these components belong to.
+Scaling every action cost by one weight $w$ multiplies a component by exactly
+$w$, so a per-component weight vector on the simplex ($w_i \ge 0$, $\sum_i w_i
+\le 1$) does yield an admissible $\sum_i w_i h_i$; but that value is a convex
+combination, and
 
 ```math
 \sum_i w_i h_i \;\le\; \Big( \sum_i w_i \Big) \max_j h_j \;\le\; \max_j h_j
 ```
 
-pointwise, while $\max_j h_j$ is itself admissible. A partition of that shape can
-never beat taking the maximum of its own components, so there is nothing in it
-to discover.
+pointwise, while $\max_j h_j$ is itself admissible. A partition of that shape
+can never beat taking the maximum of its own components, so there is nothing in
+it to discover.
 
 Cost partitioning beats the maximum only in its general form, where each
 component receives its **own cost function over actions**. Any $c_1, \dots, c_k
-\ge 0$ with $\sum_i c_i(a) \le c(a)$ for every $a$ admits $\sum_i h_i^{c_i}$ as a
-lower bound, and it is the disjointness of the cost mass that lets the sum
+\ge 0$ with $\sum_i c_i(a) \le c(a)$ for every $a$ admits $\sum_i h_i^{c_i}$ as
+a lower bound, and it is the disjointness of the cost mass that lets the sum
 exceed the maximum. What has to be discovered is then a cost function per
-component rather than a scalar, which needs a second component to partition
-against and an engine that evaluates a component under supplied costs.
-`DEVELOPMENT.md` records the work that follows.
+component rather than a scalar.
+
+The engine takes cost functions already. `LandmarkFactory` prices landmarks
+with a supplied `ActionCosts`, `PatternDatabase` is built under one, and
+`enumerate_state_space` computes `h*` under one, so a component can be checked
+against the goal distances of the same task under the same costs, and
+`is_cost_partition` checks that the shares of an action never exceed what the
+action costs. What was missing was the scheme that produces the shares. §6.5
+supplies it.
+
+### 6.5 Saturated cost partitioning
+
+A pattern database charges an action only for the drop in abstract goal
+distance the action can produce. Whatever the action costs beyond that is cost
+the database is not using, and it can go to another component without either of
+them charging for the same thing twice. That least cost function is the
+component's **saturated cost function**,
+
+```math
+\mathrm{scf}_i(a) \;=\;
+\min\Bigl(\, c(a),\;
+\max\bigl( \{0\} \cup
+\bigl\{\, h_i(u) - h_i(v) \;\bigm|\;
+   u \xrightarrow{\;a\;} v,\; h_i(u), h_i(v) < \infty \,\bigr\} \bigr) \Bigr),
+```
+
+and it is computed from the abstract transition relation the database already
+enumerates, in one pass, at construction. Building the components in an order,
+each under what its predecessors left, spends the task's costs exactly once and
+leaves a remainder for a component of another kind.
+
+<p align="center">
+  <img src="docs/figures/saturation.svg" alt="One action's cost divided three ways" width="640">
+</p>
+
+**Figure 4.** One action's cost, divided three ways. The saturated chain gives
+each component the least it needs to keep its own table and passes on the rest.
+The uniform scheme divides the cost without asking what any component can use.
+The scaled scheme is the class of §2.2, whose sum is a convex combination and
+therefore bounded by the maximum.
+
+Admissibility holds whatever order the chain runs in. Informedness does not,
+and the first implementation made the wrong assumption about it. A component
+that has already reached its own abstract goal still saturates against the
+actions leading into it, and what it takes is what the next component needed.
+The witness is a state of one of the unit test fixtures, `joint` at
+`{start, left}`, where the chain returns 0 and the maximum returns 1.
+
+<p align="center">
+  <img src="docs/figures/starvation.svg" alt="Starvation under a fixed order, and its repair" width="820">
+</p>
+
+**Figure 5.** The counterexample and its repair. The maximum over the `k` cyclic
+rotations of the order is at least the maximum over the components at every
+state, because in the rotation that begins at component `i` that component is
+built under the task's own costs and every other summand is non-negative. The
+starved component leads one of the rotations.
+
+A partition need not keep to one kind of component. The databases saturate, the
+landmark bound is priced with what they did not spend, and the degenerate
+member in which the landmark bound takes everything is kept in the family so
+that the maximum dominates `landmark_cost` as well. A landmark bound cannot be
+saturated the same way: an abstraction stores a whole function whose least
+preserving cost is a property of the table, while the landmarks of a state are
+recomputed at that state and there is no stored function to preserve.
+
+On the same four seven-block instances, over the same 263958 states:
+
+| Heuristic | Informedness | Min `h/h*` | Expanded | Search | Setup |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| `pdb` (the control, max over components) | 0.339 | 0.111 | 18341 | 0.03 s | 0.24 s |
+| `pdb_uniform` (uniform partition) | 0.195 | 0.026 | 68781 | 0.08 s | 0.25 s |
+| `scp` (saturated, one fixed order) | 0.339 | 0.000 | 27655 | 0.03 s | 0.22 s |
+| `scp_rotations` (max over the `k` rotations) | 0.420 | 0.167 | 13084 | 0.09 s | 1.71 s |
+| `landmark_cost` (the other control) | 0.520 | 0.268 | 4166 | 0.48 s | 0.00 s |
+| `scp_mixed` (databases then landmarks) | **0.530** | 0.268 | **4067** | 1.06 s | 1.64 s |
+
+Three of those rows say something the others do not. `pdb_uniform` is a legal
+partition of the general form and the worst heuristic in the table, so being a
+partition is not by itself worth anything. `scp` ties the maximum on the mean
+and expands fifty per cent more nodes, and its minimum of 0.000 is the
+starvation above appearing at scale: a mean over states hides a bound that
+collapses, and A\* does not. `scp_rotations` is the first heuristic here that
+beats the control it was built to beat, by 24% of informedness and 29% of
+expansions, with a guarantee that holds at every state.
+
+`scp_mixed` dominates both controls by construction and improves on the better
+of them by two per cent. That margin is the informative number. The saturated
+databases consume between 70.4% and 78.6% of the total cost mass and are the
+better bound at 20.9% of the states; at three states in four the right decision
+is to give them nothing. Saturation is optimal for one component in isolation
+and not for a chain, because what a component needs to preserve its table is
+not what it needs to be useful.
+
+Setup is what the process spends before the first node is expanded and is
+reported separately, because the rotated constructions build `k` chains of `k`
+databases and that is the cost that grows. Neither construction pays for itself
+in wall time at seven blocks; both are gains in the quantity the discovery loop
+optimises.
+
+The full derivation, the proofs, the per-instance numbers and what is still
+missing are in [`docs/cost_partitioning.pdf`](docs/cost_partitioning.pdf). The
+largest thing missing is a ceiling: optimal cost partitioning by linear
+programming, per state, is what would say how much of the available bound these
+schemes recover.
 
 ## 7. Reproducibility
 
