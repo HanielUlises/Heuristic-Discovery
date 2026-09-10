@@ -20,6 +20,7 @@
 #include <utility>
 #include <vector>
 
+#include "hd/costs.hpp"
 #include "hd/search/result.hpp"
 #include "hd/strips.hpp"
 
@@ -152,8 +153,17 @@ inline void compute_goal_distances(StateSpace& space) {
 }  // namespace detail
 
 // Enumerates every state reachable from the initial state and annotates each
-// with its exact cost to the nearest goal state.
-inline StateSpace enumerate_state_space(const StripsTask& task, const OracleLimits& limits = {}) {
+// with its exact cost to the nearest goal state under `costs`. Passing a
+// component's share of a cost partition gives the h* against which that
+// component alone must be admissible.
+// `expand_goal_states` decides whether a goal state has successors. A search
+// stops at one, so verification leaves it false and enumerates exactly the
+// states a search could evaluate. An abstraction has to look past them: a
+// concrete state that is not a goal can project onto an abstract goal state,
+// and the states beyond it would then be missing from the table.
+inline StateSpace enumerate_state_space(const StripsTask& task, const OracleLimits& limits,
+                                        const ActionCosts& costs,
+                                        bool expand_goal_states = false) {
   Timer timer;
   StateSpace space;
   std::unordered_map<StripsState, std::uint32_t> index;
@@ -182,7 +192,7 @@ inline StateSpace enumerate_state_space(const StripsTask& task, const OracleLimi
       space.status = OracleStatus::kTimeLimit;
       break;
     }
-    if (space.is_goal[id]) continue;  // terminal: a search stops here too
+    if (space.is_goal[id] && !expand_goal_states) continue;  // a search stops here too
 
     const StripsState s = space.states[id];  // by value; interning may reallocate
     for (std::size_t a = 0; a < task.num_actions(); ++a) {
@@ -190,13 +200,17 @@ inline StateSpace enumerate_state_space(const StripsTask& task, const OracleLimi
       if (!task.applicable(s, act)) continue;
       const std::uint32_t to = intern(task.apply(s, act));
       space.transitions.push_back({static_cast<std::uint32_t>(id), to,
-                                   static_cast<std::uint32_t>(a), task.cost(act)});
+                                   static_cast<std::uint32_t>(a), costs[a]});
     }
   }
 
   if (space.complete()) detail::compute_goal_distances(space);
   space.runtime_seconds = timer.seconds();
   return space;
+}
+
+inline StateSpace enumerate_state_space(const StripsTask& task, const OracleLimits& limits = {}) {
+  return enumerate_state_space(task, limits, ActionCosts::of(task));
 }
 
 // The propositions true in a state, by name: how a witness is reported.

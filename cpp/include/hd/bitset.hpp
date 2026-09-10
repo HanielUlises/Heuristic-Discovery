@@ -33,6 +33,11 @@ class Bitset {
     for (std::size_t w = 0; w < Words; ++w) words_[w] |= o.words_[w];
   }
 
+  // s &= o
+  constexpr void and_with(const Bitset& o) {
+    for (std::size_t w = 0; w < Words; ++w) words_[w] &= o.words_[w];
+  }
+
   // s &= ~o
   constexpr void and_not_with(const Bitset& o) {
     for (std::size_t w = 0; w < Words; ++w) words_[w] &= ~o.words_[w];

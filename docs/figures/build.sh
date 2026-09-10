@@ -9,7 +9,7 @@
 set -eu
 cd "$(dirname "$0")"
 
-for figure in admissibility landmarks partition; do
+for figure in admissibility landmarks partition saturation starvation; do
   pdflatex -interaction=nonstopmode -halt-on-error "${figure}.tex" >/dev/null
   dvisvgm --pdf --no-fonts --optimize=all --precision=3 \
           -o "${figure}.svg" "${figure}.pdf" >/dev/null 2>&1

@@ -22,16 +22,19 @@
 // to at most its own cost, so the total is a lower bound on the cost of any
 // plan from s.
 //
-// The value is linear in the action costs: evaluating this component under
-// costs w*c multiplies it by exactly w. A cost partition over several
-// components therefore needs no support here beyond a scalar weight, which the
-// linear heuristic already provides.
+// Generation depends only on reachability, so it is the same whatever the
+// action costs are; only the pricing changes. A component of a cost partition
+// is therefore this same factory constructed with its own share of the costs,
+// and the landmarks it finds are the landmarks of the task.
 #pragma once
 
 #include <cstddef>
 #include <limits>
+#include <stdexcept>
+#include <utility>
 #include <vector>
 
+#include "hd/costs.hpp"
 #include "hd/strips.hpp"
 
 namespace hd {
@@ -58,11 +61,23 @@ struct LandmarkSet {
 // for both the set and its value pays for one generation.
 class LandmarkFactory {
  public:
-  explicit LandmarkFactory(const StripsTask& task)
+  // Prices landmarks with the task's own costs.
+  explicit LandmarkFactory(const StripsTask& task) : LandmarkFactory(task, ActionCosts::of(task)) {}
+
+  // Prices landmarks with a supplied cost function: this component's share of
+  // a cost partition.
+  LandmarkFactory(const StripsTask& task, ActionCosts costs)
       : task_(&task),
+        costs_(std::move(costs)),
         fired_(task.num_actions(), 0),
         reachable_actions_(task.num_actions(), 0),
-        share_(task.num_propositions(), 0.0) {}
+        share_(task.num_propositions(), 0.0) {
+    if (costs_.size() != task.num_actions()) {
+      throw std::runtime_error("cost function does not cover every action of the task");
+    }
+  }
+
+  const ActionCosts& costs() const { return costs_; }
 
   const LandmarkSet& compute(const StripsState& s) const {
     if (cached_ && key_ == s) return set_;
@@ -74,7 +89,20 @@ class LandmarkFactory {
 
   // The uniform cost partition over the landmarks of s, or kUnboundedCost when
   // s is a proven dead end.
-  double value(const StripsState& s) const {
+  double value(const StripsState& s) const { return value_under(costs_, s); }
+
+  // The same, priced with a cost function supplied per call.
+  //
+  // Which propositions are landmarks of s is a question about relaxed
+  // reachability and does not involve costs at all, so the expensive half of
+  // this heuristic is the same whatever it is being paid. Separating the two
+  // lets one factory serve several shares of a partition and generate the set
+  // once for all of them, which matters because generation is one relaxed
+  // fixpoint per candidate proposition and the pricing is one pass.
+  double value_under(const ActionCosts& costs, const StripsState& s) const {
+    if (costs.size() != task_->num_actions()) {
+      throw std::runtime_error("cost function does not cover every action of the task");
+    }
     const LandmarkSet& lm = compute(s);
     if (lm.dead_end) return kUnboundedCost;
     if (lm.unachieved.empty()) return 0.0;
@@ -86,7 +114,7 @@ class LandmarkFactory {
       const StripsAction& act = task_->action(a);
       const std::size_t shares = act.add.count_common(lm.unachieved);
       if (shares == 0) continue;
-      const double portion = task_->cost(act) / static_cast<double>(shares);
+      const double portion = costs[a] / static_cast<double>(shares);
       for (std::size_t p = 0; p < np; ++p) {
         if (act.add.test(p) && lm.unachieved.test(p) && portion < share_[p]) share_[p] = portion;
       }
@@ -154,6 +182,7 @@ class LandmarkFactory {
   }
 
   const StripsTask* task_;
+  ActionCosts costs_;
   mutable std::vector<unsigned char> fired_;
   mutable std::vector<unsigned char> reachable_actions_;
   mutable std::vector<double> share_;
