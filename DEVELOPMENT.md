@@ -223,13 +223,14 @@ In rough order of expected value per unit of work:
 
    The previous version of this item said the order the components are paid in
    was "the right object for this project to discover". That is falsified.
-   `hd_orders` enumerates every ordering at the sizes where `k!` is tractable,
-   and §6.6 of the README reports the result: the best ordering of all 120 at
-   five blocks, chosen with full knowledge of the state space, is about 20%
-   below the rotation family and beats the plain maximum over the components on
-   none of the four instances, so no search over permutations can replace the
-   family; and the rotations already recover 98.6% to 99.2% of the maximum over
-   all `k!` orderings, so no larger family can add more than about one per cent.
+   `hd_orders` enumerates every ordering up to seven blocks, 5040 chains and
+   35280 database constructions per instance, and §6.6 of the README reports the
+   result: the best ordering, chosen with full knowledge of the state space,
+   reaches only 79.2% to 83.8% of the rotation family and does not reliably beat
+   the plain maximum over the components, so no search over permutations can
+   replace the family; and the rotations already recover 98.6% to 99.2% of the
+   maximum over all `k!` orderings, flat in `k` across that range, so no larger
+   family can add more than about one per cent.
    The value is in taking a maximum over a family that covers every component,
    and the cheapest such family gets almost all of it.
 
