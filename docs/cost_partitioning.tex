@@ -103,10 +103,10 @@ controls by construction, and improves on the stronger of them by $1.9\%$ of
 informedness. An accompanying analysis attributes the size of that margin to
 the distribution of cost mass: the databases retain between $70.4\%$ and
 $78.6\%$ of the total action cost and yield the better bound at $20.9\%$ of the
-evaluated states. Finally, every ordering is enumerated at five and six blocks,
-where $k!$ is $120$ and $720$. The best single ordering, selected with full
-knowledge of the state space, remains approximately $20\%$ below the rotation
-family, and the rotation family recovers $98.6\%$ and $99.2\%$ of the
+evaluated states. Finally, every ordering is enumerated up to seven
+blocks, where $k!$ reaches $5\,040$. The best single ordering, selected with
+full knowledge of the state space, attains $79.2\%$ to $83.8\%$ of the rotation
+family, and the rotation family recovers $98.6\%$ to $99.2\%$ of the
 informedness of the maximum over all $k!$ orderings. The accuracy of the
 construction therefore resides in taking a maximum over a family covering every
 component, and not in the choice of ordering.
@@ -176,10 +176,10 @@ behaviour. Within that setting the following are reported.
         (Theorem~\ref{thm:mixed}), and an analysis attributing the size of its
         empirical margin to the distribution of cost mass among the components
         (Section~\ref{sec:anatomy}).
-  \item An exhaustive enumeration of the $k!$ orderings at the instance sizes
-        where it is feasible, bounding both what a single selected ordering and
-        what a larger family of orderings can contribute
-        (Section~\ref{sec:orders}).
+  \item An exhaustive enumeration of all $k!$ orderings up to seven blocks,
+        $5\,040$ chains and $35\,280$ database constructions per instance,
+        bounding both what a single selected ordering and what a larger family
+        of orderings can contribute (Section~\ref{sec:orders}).
 \end{enumerate}
 
 The constructions in items~1, 3 and~4 are not new; Section~\ref{sec:related}
@@ -907,14 +907,18 @@ components. A separate question is how much of the accuracy available to an
 order-based scheme the rotation family actually obtains, and it is decided
 here by enumeration instead of by argument. Since the number of patterns is
 the number of goal conditions, which in Blocksworld is the number of blocks,
-every permutation can be scored at five and six blocks: $5! = 120$ and
-$6! = 720$ saturated chains per instance, each evaluated at every state of the
-enumerated space against exact goal distances.
+every permutation can be scored up to seven blocks: $120$, $720$ and $5\,040$
+saturated chains per instance, or $35\,280$ database constructions per instance
+at seven blocks, each chain evaluated against exact goal distances.
 
 \begin{table*}[t]
 \centering
-\caption{Every ordering of the goal patterns, scored on all states of the
-enumerated space with finite non-zero $\hstar$. \emph{Best single} and
+\caption{Every ordering of the goal patterns, scored against exact goal
+distances. The five- and six-block rows use every state of the enumerated space
+with finite non-zero $\hstar$; the seven-block rows use $3\,882$ states taken
+at a fixed stride through that space, all five quantities on the same sample,
+which returns $0.4193$ for the rotation family against the $0.4200$ of
+Table~\ref{tab:comparison} over the full space. \emph{Best single} and
 \emph{worst single} are the extremes over the $k!$ orderings, selected with
 full knowledge of the state space; \emph{rotations} is the maximum over the
 $k$ cyclic rotations; \emph{all orderings} is the maximum over all $k!$. The
@@ -938,8 +942,14 @@ Best single & Rotations & All orderings \\
 \code{blocks-06-02} & 6 & 720 & 7\,056 & 0.5226 & 0.3535 & 0.5791 & 0.6880 & 0.6884 \\
 \code{blocks-06-03} & 6 & 720 & 7\,056 & 0.5646 & 0.3520 & 0.5848 & 0.6959 & 0.7078 \\
 \midrule
+\code{blocks-07-00} & 7 & 5\,040 & 3\,882 & 0.3281 & 0.1533 & 0.3424 & 0.3941 & 0.4013 \\
+\code{blocks-07-01} & 7 & 5\,040 & 3\,882 & 0.3574 & 0.2189 & 0.3865 & 0.4669 & 0.4694 \\
+\code{blocks-07-02} & 7 & 5\,040 & 3\,882 & 0.3046 & 0.2072 & 0.3012 & 0.3572 & 0.3585 \\
+\code{blocks-07-03} & 7 & 5\,040 & 3\,882 & 0.3664 & 0.2286 & 0.3749 & 0.4588 & 0.4635 \\
+\midrule
 \multicolumn{4}{l}{Mean, five blocks}  & 0.5957 & 0.3015 & 0.5299 & 0.6687 & 0.6783 \\
 \multicolumn{4}{l}{Mean, six blocks}   & 0.5291 & 0.3296 & 0.5520 & 0.6657 & 0.6709 \\
+\multicolumn{4}{l}{Mean, seven blocks} & 0.3391 & 0.2020 & 0.3513 & 0.4193 & 0.4232 \\
 \bottomrule
 \end{tabular}
 \end{adjustbox}
@@ -948,27 +958,30 @@ Best single & Rotations & All orderings \\
 Table~\ref{tab:orders} reports the outcome, and two consequences follow.
 
 \paragraph{No single ordering can replace the family.}
-The best ordering at five blocks, chosen with full knowledge of the state
-space, attains $88.9\%$ of the maximum over the components and does not exceed
-it on any of the four instances; at six blocks it attains $104.3\%$ and exceeds
-it on three of four. In both cases it remains approximately $20\%$ below the
-rotation family. Selecting one ordering well is therefore not an alternative to
-evaluating the family, and a procedure that searches the space of permutations
-for a single chain optimises toward a target below what $k$ chains already
-provide. The spread between the worst and the best ordering is nonetheless
-large, at $0.3015$ to $0.5299$ over the five-block instances, so the ordering
-governs the accuracy of an individual chain while contributing almost nothing
-once a covering maximum is taken.
+The best ordering, chosen with full knowledge of the state space, attains
+$88.9\%$, $104.3\%$ and $103.6\%$ of the maximum over the components at five,
+six and seven blocks, and exceeds that maximum on none, three and three of the
+four instances of each size. Against the rotation family it attains $79.2\%$,
+$82.9\%$ and $83.8\%$. Selecting one ordering well is therefore not an
+alternative to evaluating the family: at best it approximates the control that
+the family already improves upon by a fifth. A procedure that searches the
+space of permutations for a single chain optimises toward a target below what
+$k$ chains already provide. The spread between the worst and the best ordering
+is nonetheless large, from $0.2020$ to $0.3513$ at seven blocks, so the
+ordering governs the accuracy of an individual chain while contributing almost
+nothing once a covering maximum is taken.
 
 \paragraph{Further diversification of the family is bounded at approximately
 one per cent.}
-The rotation family recovers $98.6\%$ of the informedness of the maximum over
-all $k!$ orderings at five blocks and $99.2\%$ at six, and the latter exceeds
-the former strictly at $8.5\%$ and $5.4\%$ of states respectively. The
-guarantee of Theorem~\ref{thm:rotations} is therefore obtained at close to the
-best value any family of orderings of these components can attain, and the
-selection of a larger or better-chosen family is not a productive direction for
-this set of components.
+The rotation family recovers $98.6\%$, $99.2\%$ and $99.1\%$ of the
+informedness of the maximum over all $k!$ orderings at five, six and seven
+blocks, and the latter exceeds the former strictly at $8.5\%$, $5.4\%$ and
+$6.5\%$ of states. The ratio is stable in $k$ over the range where enumeration
+is possible, which is the range in which the family grows from $5$ orderings
+out of $120$ to $7$ out of $5\,040$. The guarantee of
+Theorem~\ref{thm:rotations} is therefore obtained at close to the best value
+any family of orderings of these components can attain, and selecting a larger
+or better-chosen family is not a productive direction here.
 
 Taken together the two observations locate the value of the construction in the
 maximum over a family that covers every component, and not in the ordering. The
@@ -1008,8 +1021,8 @@ well among poorly selected components remains limited by those components.
 Theorem~\ref{thm:rotations} obtains its guarantee by evaluating all $k$
 orderings, and a single ordering would cost a $k$-th of the setup.
 Section~\ref{sec:orders} shows that no such saving is available: the best
-ordering over all $k!$, selected with full knowledge of the state space, is
-approximately $20\%$ below the family. The residual cost of the construction is
+ordering over all $k!$, selected with full knowledge of the state space,
+attains at most $83.8\%$ of the family. The residual cost of the construction is
 therefore intrinsic to it at these sizes, and reducing it requires cheaper
 components and not a cheaper family.
 
@@ -1072,13 +1085,13 @@ databases retain roughly three quarters of the total action cost while yielding
 the better bound at one state in five. Saturation is optimal for an isolated
 component and is not optimal for a chain.
 
-Enumerating every ordering at the sizes where $k!$ is tractable establishes
+Enumerating every ordering up to seven blocks establishes
 where the accuracy of the construction is not. The best single ordering,
-selected with full knowledge of the state space, is approximately $20\%$ below
-the rotation family, so no procedure that searches for one ordering can replace
-it; and the rotation family already recovers $98.6\%$ to $99.2\%$ of the
-maximum over all orderings, so no larger family can add more than about one per
-cent. What the construction is worth is due to taking a maximum over a family
+selected with full knowledge of the state space, attains between $79.2\%$ and
+$83.8\%$ of the rotation family, so no procedure that searches for one ordering
+can replace it; and the rotation family already recovers between $98.6\%$ and
+$99.2\%$ of the maximum over all orderings, so no larger family can add more
+than about one per cent. What the construction is worth is due to taking a maximum over a family
 covering every component. Two directions therefore remain: establishing an
 optimal cost partitioning reference point, which would say how much of the
 attainable bound saturation recovers, and improving the components themselves,
@@ -1099,7 +1112,8 @@ are generated from a fixed seed and are committed. The enumeration of
 Section~\ref{sec:orders} is performed by a separate tool in the same
 repository, which agrees with the verifier to four decimal places on the two
 quantities they share, the maximum over components and the rotation family, on
-all eight instances of five and six blocks.
+all eight instances of five and six blocks, and to three decimal places at
+seven blocks, where it evaluates on a stride sample of the state space.
 
 \begin{thebibliography}{99}
 \small
