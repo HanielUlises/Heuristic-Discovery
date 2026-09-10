@@ -211,42 +211,45 @@ claim about generality, which is the point at which one should be added.
 
 In rough order of expected value per unit of work:
 
-1. **The order of a saturated cost partition.** The partition scheme itself is
-   done and is written up in `docs/cost_partitioning.pdf`. `pdb_uniform` is the
-   control the previous version of this list asked for and is the worst
-   heuristic on the benchmark; `scp` is a saturated chain under a fixed order
-   and ties the maximum it was meant to beat; `scp_rotations` is the maximum
-   over the `k` cyclic rotations of that order and beats it by 24% of
-   informedness and 29% of expansions, with a guarantee that holds at every
-   state; `scp_mixed` puts the databases and the landmark bound under one
-   partition and dominates both controls by construction.
+1. **A ceiling for the partition.** The scheme is done and is written up in
+   `docs/cost_partitioning.pdf`. `pdb_uniform` is the control the previous
+   version of this list asked for and is the worst heuristic on the benchmark;
+   `scp` is a saturated chain under a fixed order and ties the maximum it was
+   meant to beat; `scp_rotations` is the maximum over the `k` cyclic rotations
+   of that order and beats it by 24% of informedness and 29% of expansions,
+   with a guarantee that holds at every state; `scp_mixed` puts the databases
+   and the landmark bound under one partition and dominates both controls by
+   construction.
 
-   What is left is the order, and §6.5 of the README says why it is where the
-   value is. A component that has reached its own abstract goal still saturates
-   against the actions leading into it, so a fixed order can starve the
-   component that the maximum would have selected. The rotations buy the
-   guarantee by paying for `k` orders; a single order chosen well would cost
-   `1/k` of that and give the guarantee up.
+   The previous version of this item said the order the components are paid in
+   was "the right object for this project to discover". That is falsified.
+   `hd_orders` enumerates every ordering at the sizes where `k!` is tractable,
+   and §6.6 of the README reports the result: the best ordering of all 120 at
+   five blocks, chosen with full knowledge of the state space, is about 20%
+   below the rotation family and beats the plain maximum over the components on
+   none of the four instances, so no search over permutations can replace the
+   family; and the rotations already recover 98.6% to 99.2% of the maximum over
+   all `k!` orderings, so no larger family can add more than about one per cent.
+   The value is in taking a maximum over a family that covers every component,
+   and the cheapest such family gets almost all of it.
 
-   That order is a permutation of the components: small, interpretable, and
-   exactly the kind of object this project exists to search over. The objective
-   is available without running a search, since `hd_verify` computes
-   informedness against `h*` directly. The immediate experiment is whether a
-   searched permutation beats the rotations at a fraction of their cost.
+   What remains is a ceiling and better components, in that order.
 
-   Two things this needs that do not exist yet:
-
-   1. **A ceiling.** Optimal cost partitioning by LP, per state, over the
-      shares of the same components. Without it, 0.420 and 0.530 are
-      comparisons against the controls and not against what the components
-      could give. The variables are one share per component and action; the
-      constraints are the partition inequalities plus, per component, that its
-      stored table remains a bound.
-   2. **Diversification instead of enumeration.** The rotations are the
-      cheapest family in which every component leads once. A set of orders
-      chosen to be diverse over the states actually evaluated is the standard
-      improvement, and it changes the question from which order is best to
-      which set of orders covers the state space.
+   1. **Optimal cost partitioning by LP**, per state, over the shares of the
+      same components. Without it, 0.420 and 0.530 are comparisons against the
+      controls and not against what the components could give, and there is no
+      way to tell whether saturation is leaving anything on the table. The
+      variables are one share per component and action, plus the component
+      values; the constraints are the partition inequalities together with,
+      per component, the requirement that its stored table remains a bound.
+      Two decisions come first: the repository has no external dependencies
+      today and an LP solver is one, and the LP is per state, so with 263958
+      states it has to be a stratified sample.
+   2. **Pattern selection.** §6.2 already records that raising the closure
+      budget from twelve to eighteen propositions moves informedness from 0.655
+      to 0.745 on `blocks-05-00`, which is a larger effect than anything cost
+      partitioning bought. With the order exhausted, the components are where
+      the remaining accuracy has to be.
 
 2. **A second domain.** Gripper or Logistics, added as a generator alongside
    `hd.domains.blocksworld`. Then re-run the Phase I experiment and report

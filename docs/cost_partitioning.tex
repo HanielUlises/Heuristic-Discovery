@@ -103,7 +103,13 @@ controls by construction, and improves on the stronger of them by $1.9\%$ of
 informedness. An accompanying analysis attributes the size of that margin to
 the distribution of cost mass: the databases retain between $70.4\%$ and
 $78.6\%$ of the total action cost and yield the better bound at $20.9\%$ of the
-evaluated states.
+evaluated states. Finally, every ordering is enumerated at five and six blocks,
+where $k!$ is $120$ and $720$. The best single ordering, selected with full
+knowledge of the state space, remains approximately $20\%$ below the rotation
+family, and the rotation family recovers $98.6\%$ and $99.2\%$ of the
+informedness of the maximum over all $k!$ orderings. The accuracy of the
+construction therefore resides in taking a maximum over a family covering every
+component, and not in the choice of ordering.
 
 \vspace{0.7em}
 \noindent\textbf{Keywords.} classical planning; admissible heuristics; cost
@@ -170,6 +176,10 @@ behaviour. Within that setting the following are reported.
         (Theorem~\ref{thm:mixed}), and an analysis attributing the size of its
         empirical margin to the distribution of cost mass among the components
         (Section~\ref{sec:anatomy}).
+  \item An exhaustive enumeration of the $k!$ orderings at the instance sizes
+        where it is feasible, bounding both what a single selected ordering and
+        what a larger family of orderings can contribute
+        (Section~\ref{sec:orders}).
 \end{enumerate}
 
 The constructions in items~1, 3 and~4 are not new; Section~\ref{sec:related}
@@ -889,6 +899,82 @@ goal-condition patterns of a Blocksworld instance overlap substantially, and
 each preserves a quantity of cost that the landmark bound would have priced
 more productively.
 
+\subsection{Exhaustive enumeration of orderings}
+\label{sec:orders}
+
+Section~\ref{sec:anatomy} attributes the margin of the mixed family to the
+components. A separate question is how much of the accuracy available to an
+order-based scheme the rotation family actually obtains, and it is decided
+here by enumeration instead of by argument. Since the number of patterns is
+the number of goal conditions, which in Blocksworld is the number of blocks,
+every permutation can be scored at five and six blocks: $5! = 120$ and
+$6! = 720$ saturated chains per instance, each evaluated at every state of the
+enumerated space against exact goal distances.
+
+\begin{table*}[t]
+\centering
+\caption{Every ordering of the goal patterns, scored on all states of the
+enumerated space with finite non-zero $\hstar$. \emph{Best single} and
+\emph{worst single} are the extremes over the $k!$ orderings, selected with
+full knowledge of the state space; \emph{rotations} is the maximum over the
+$k$ cyclic rotations; \emph{all orderings} is the maximum over all $k!$. The
+last column gives the fraction of states at which the last exceeds the
+rotations strictly.}
+\label{tab:orders}
+\small
+\begin{adjustbox}{max width=\textwidth}
+\begin{tabular}{lrrrrrrrr}
+\toprule
+Instance & $k$ & Orderings & States & Max over components & Worst single &
+Best single & Rotations & All orderings \\
+\midrule
+\code{blocks-05-00} & 5 & 120 & 865    & 0.6546 & 0.3387 & 0.5828 & 0.7328 & 0.7470 \\
+\code{blocks-05-01} & 5 & 120 & 865    & 0.6039 & 0.3066 & 0.5474 & 0.6837 & 0.6908 \\
+\code{blocks-05-02} & 5 & 120 & 863    & 0.5204 & 0.2542 & 0.4419 & 0.5724 & 0.5818 \\
+\code{blocks-05-03} & 5 & 120 & 865    & 0.6039 & 0.3066 & 0.5474 & 0.6858 & 0.6938 \\
+\midrule
+\code{blocks-06-00} & 6 & 720 & 7\,056 & 0.4944 & 0.2594 & 0.4651 & 0.5843 & 0.5924 \\
+\code{blocks-06-01} & 6 & 720 & 7\,056 & 0.5348 & 0.3535 & 0.5791 & 0.6948 & 0.6952 \\
+\code{blocks-06-02} & 6 & 720 & 7\,056 & 0.5226 & 0.3535 & 0.5791 & 0.6880 & 0.6884 \\
+\code{blocks-06-03} & 6 & 720 & 7\,056 & 0.5646 & 0.3520 & 0.5848 & 0.6959 & 0.7078 \\
+\midrule
+\multicolumn{4}{l}{Mean, five blocks}  & 0.5957 & 0.3015 & 0.5299 & 0.6687 & 0.6783 \\
+\multicolumn{4}{l}{Mean, six blocks}   & 0.5291 & 0.3296 & 0.5520 & 0.6657 & 0.6709 \\
+\bottomrule
+\end{tabular}
+\end{adjustbox}
+\end{table*}
+
+Table~\ref{tab:orders} reports the outcome, and two consequences follow.
+
+\paragraph{No single ordering can replace the family.}
+The best ordering at five blocks, chosen with full knowledge of the state
+space, attains $88.9\%$ of the maximum over the components and does not exceed
+it on any of the four instances; at six blocks it attains $104.3\%$ and exceeds
+it on three of four. In both cases it remains approximately $20\%$ below the
+rotation family. Selecting one ordering well is therefore not an alternative to
+evaluating the family, and a procedure that searches the space of permutations
+for a single chain optimises toward a target below what $k$ chains already
+provide. The spread between the worst and the best ordering is nonetheless
+large, at $0.3015$ to $0.5299$ over the five-block instances, so the ordering
+governs the accuracy of an individual chain while contributing almost nothing
+once a covering maximum is taken.
+
+\paragraph{Further diversification of the family is bounded at approximately
+one per cent.}
+The rotation family recovers $98.6\%$ of the informedness of the maximum over
+all $k!$ orderings at five blocks and $99.2\%$ at six, and the latter exceeds
+the former strictly at $8.5\%$ and $5.4\%$ of states respectively. The
+guarantee of Theorem~\ref{thm:rotations} is therefore obtained at close to the
+best value any family of orderings of these components can attain, and the
+selection of a larger or better-chosen family is not a productive direction for
+this set of components.
+
+Taken together the two observations locate the value of the construction in the
+maximum over a family that covers every component, and not in the ordering. The
+remaining accuracy, if any, lies in the components or in a partitioning rule
+other than saturation.
+
 %  ======================================================================
 \section{Discussion and limitations}
 \label{sec:discussion}
@@ -918,15 +1004,14 @@ blocks, which indicates that pattern selection influences the result at least
 as strongly as the partition over the patterns. A scheme that allocates cost
 well among poorly selected components remains limited by those components.
 
-\paragraph{The rotation family is exhaustive, not selective.}
+\paragraph{The cost of the rotation family is not avoidable by selection.}
 Theorem~\ref{thm:rotations} obtains its guarantee by evaluating all $k$
-orderings. A single well-chosen ordering would cost a $k$-th of the setup and
-would forfeit the guarantee. Nothing established here indicates how to select
-it, and Remark~\ref{rem:minimality} together with
-Section~\ref{sec:anatomy} suggests that the ordering, and not the saturation
-rule, is where the remaining accuracy resides. An ordering is a permutation of
-the components: a small, interpretable object, and one for which the objective
-is computable without running a search.
+orderings, and a single ordering would cost a $k$-th of the setup.
+Section~\ref{sec:orders} shows that no such saving is available: the best
+ordering over all $k!$, selected with full knowledge of the state space, is
+approximately $20\%$ below the family. The residual cost of the construction is
+therefore intrinsic to it at these sizes, and reducing it requires cheaper
+components and not a cheaper family.
 
 %  ======================================================================
 \section{Related work}
@@ -952,14 +1037,16 @@ Keller and Helmert~\cite{seipp2020}. Its dependence on the ordering of the
 components, and the use of several orderings selected for diversity, are
 treated in the same line of work~\cite{seipp2017,seipp2020}; the rotation
 family of Definition~\ref{def:rotations} is a specific deterministic instance
-of that idea, chosen here for the guarantee of Theorem~\ref{thm:rotations}
-rather than for diversity. Combining components of different families under one
+of that idea, chosen here for the guarantee of Theorem~\ref{thm:rotations} and
+not for diversity. Section~\ref{sec:orders} bounds what diversity could add
+for the components used here, by enumerating the orderings the diverse
+selection would be drawn from. Combining components of different families under one
 saturated partition is likewise established practice in that
 literature. Accordingly, no claim of novelty is made for the constructions
 themselves. What this article contributes is an independent implementation
 inside a verification framework where $\hstar$ is available exactly, the
 resulting confirmation of admissibility and consistency by exhaustive
-enumeration rather than by argument alone, and the quantitative attribution in
+enumeration instead of by argument alone, and the quantitative attribution in
 Section~\ref{sec:anatomy} of the margin obtained by a heterogeneous partition
 to the distribution of cost mass among its components.
 
@@ -983,10 +1070,19 @@ informedness.
 The size of that final margin was traced to the distribution of cost mass: the
 databases retain roughly three quarters of the total action cost while yielding
 the better bound at one state in five. Saturation is optimal for an isolated
-component and is not optimal for a chain, and the discrepancy is governed by
-the ordering. Establishing an optimal cost partitioning reference point, and
-searching the space of orderings rather than enumerating a family of them,
-follow directly.
+component and is not optimal for a chain.
+
+Enumerating every ordering at the sizes where $k!$ is tractable establishes
+where the accuracy of the construction is not. The best single ordering,
+selected with full knowledge of the state space, is approximately $20\%$ below
+the rotation family, so no procedure that searches for one ordering can replace
+it; and the rotation family already recovers $98.6\%$ to $99.2\%$ of the
+maximum over all orderings, so no larger family can add more than about one per
+cent. What the construction is worth is due to taking a maximum over a family
+covering every component. Two directions therefore remain: establishing an
+optimal cost partitioning reference point, which would say how much of the
+attainable bound saturation recovers, and improving the components themselves,
+for which the pattern selection procedure used here is the obvious candidate.
 
 %  ======================================================================
 \section*{Reproducibility}
@@ -999,7 +1095,11 @@ build provenance, the resource limits and every quantity reported above. The
 search engine is deterministic: tie-breaking in the open list is by insertion
 order, and patterns are a deterministic function of the task and the budget, so
 repeated runs of a configuration return identical metrics. The four instances
-are generated from a fixed seed and are committed.
+are generated from a fixed seed and are committed. The enumeration of
+Section~\ref{sec:orders} is performed by a separate tool in the same
+repository, which agrees with the verifier to four decimal places on the two
+quantities they share, the maximum over components and the rotation family, on
+all eight instances of five and six blocks.
 
 \begin{thebibliography}{99}
 \small

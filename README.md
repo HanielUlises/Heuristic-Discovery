@@ -334,8 +334,8 @@ goal states, where `achieved_goals`, `true_propositions` and
 zero before anything else is considered. The sum of two admissible heuristics
 is in general not admissible either, which leaves little inside `h_θ` to
 discover. §6.4 says what an admissible class needs and §6.5 builds one: under a
-cost partition the sum of the components is admissible by construction, and the
-object left to discover is the order the components are paid in.
+cost partition the sum of the components is admissible by construction, so the
+verifier checks the construction instead of filtering candidates.
 
 ### 6.1 The landmark component
 
@@ -580,11 +580,50 @@ databases and that is the cost that grows. Neither construction pays for itself
 in wall time at seven blocks; both are gains in the quantity the discovery loop
 optimises.
 
+### 6.6 Where the value is not
+
+`scp_rotations` evaluates `k` chains because that is the smallest family in
+which every component leads once. Two questions follow, and both are decided by
+enumeration instead of by argument: could one well-chosen ordering replace the
+family, and could a larger or better-chosen family beat it? The number of
+patterns is the number of goal conditions, which in Blocksworld is the number of
+blocks, so every ordering can be scored at five and six blocks.
+
+```
+hd_orders --instance instances/blocksworld/blocks-05-00.task
+```
+
+Mean informedness over all states of the enumerated space with finite non-zero
+`h*`, averaged over the four instances of each size:
+
+| | max over components | worst single order | best single order | `k` rotations | all `k!` orders |
+| --- | ---: | ---: | ---: | ---: | ---: |
+| five blocks, `k!` = 120 | 0.5957 | 0.3015 | 0.5299 | 0.6687 | 0.6783 |
+| six blocks, `k!` = 720 | 0.5291 | 0.3296 | 0.5520 | 0.6657 | 0.6709 |
+
+**No single ordering can replace the family.** The best ordering of all 120 at
+five blocks, selected with full knowledge of the state space, reaches 88.9% of
+the plain maximum over the components and beats it on none of the four
+instances; at six blocks it reaches 104.3% and beats it on three of four. Both
+are about 20% below the rotation family. A search over permutations for one
+chain would therefore be optimising toward a target below what `k` chains
+already give.
+
+**Diversifying the family is bounded at about one per cent.** The rotations
+recover 98.6% of the informedness of the maximum over all `k!` orderings at five
+blocks and 99.2% at six, and all-orders is strictly above the rotations at only
+8.5% and 5.4% of states.
+
+The ordering governs the accuracy of a single chain, where worst to best is
+0.3015 to 0.5299, and contributes almost nothing once a covering maximum is
+taken. The value of the construction is in that maximum. Whatever accuracy
+remains is in the components or in a partitioning rule other than saturation.
+
 The full derivation, the proofs, the per-instance numbers and what is still
 missing are in [`docs/cost_partitioning.pdf`](docs/cost_partitioning.pdf). The
 largest thing missing is a ceiling: optimal cost partitioning by linear
-programming, per state, is what would say how much of the available bound these
-schemes recover.
+programming, per state, is what would say how much of the available bound
+saturation recovers.
 
 ## 7. Reproducibility
 
