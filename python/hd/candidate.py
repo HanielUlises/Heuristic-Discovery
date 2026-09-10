@@ -31,7 +31,7 @@ FEATURE_NAMES = (
 )
 
 #: Baseline heuristics built into the engine, addressed by name.
-BASELINE_HEURISTICS = ("zero", "goal_count", "relaxed_layers", "landmark_cost")
+BASELINE_HEURISTICS = ("zero", "goal_count", "relaxed_layers", "landmark_cost", "pdb")
 
 
 @dataclass(frozen=True)

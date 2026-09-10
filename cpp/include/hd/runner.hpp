@@ -38,7 +38,18 @@ inline const char* algorithm_name(SearchAlgorithm a) {
 // A heuristic is either one of the named baselines or an explicit linear
 // combination of features, which is what the discovery loop proposes.
 struct HeuristicSpec {
-  enum class Kind { kZero, kGoalCount, kRelaxedLayers, kLandmarkCost, kLinear };
+  enum class Kind {
+    kZero,
+    kGoalCount,
+    kRelaxedLayers,
+    kLandmarkCost,
+    kPatternDatabases,
+    kUniformPatternDatabases,
+    kSaturatedPatternDatabases,
+    kRotatedSaturatedPatternDatabases,
+    kSaturatedMixed,
+    kLinear
+  };
   Kind kind = Kind::kZero;
   std::vector<LinearHeuristic::Term> terms;
 
@@ -48,6 +59,11 @@ struct HeuristicSpec {
       case Kind::kGoalCount: return "goal_count";
       case Kind::kRelaxedLayers: return "relaxed_layers";
       case Kind::kLandmarkCost: return "landmark_cost";
+      case Kind::kPatternDatabases: return "pdb";
+      case Kind::kUniformPatternDatabases: return "pdb_uniform";
+      case Kind::kSaturatedPatternDatabases: return "scp";
+      case Kind::kRotatedSaturatedPatternDatabases: return "scp_rotations";
+      case Kind::kSaturatedMixed: return "scp_mixed";
       case Kind::kLinear: return "linear";
     }
     return "unknown";
@@ -71,6 +87,26 @@ inline HeuristicSpec parse_heuristic_spec(const std::string& spec) {
   }
   if (spec == "landmark_cost") {
     out.kind = HeuristicSpec::Kind::kLandmarkCost;
+    return out;
+  }
+  if (spec == "pdb") {
+    out.kind = HeuristicSpec::Kind::kPatternDatabases;
+    return out;
+  }
+  if (spec == "pdb_uniform") {
+    out.kind = HeuristicSpec::Kind::kUniformPatternDatabases;
+    return out;
+  }
+  if (spec == "scp") {
+    out.kind = HeuristicSpec::Kind::kSaturatedPatternDatabases;
+    return out;
+  }
+  if (spec == "scp_rotations") {
+    out.kind = HeuristicSpec::Kind::kRotatedSaturatedPatternDatabases;
+    return out;
+  }
+  if (spec == "scp_mixed") {
+    out.kind = HeuristicSpec::Kind::kSaturatedMixed;
     return out;
   }
 
@@ -121,6 +157,14 @@ auto with_heuristic(const StripsTask& task, const HeuristicSpec& spec, F&& fn) {
     case HeuristicSpec::Kind::kGoalCount: return fn(GoalCountHeuristic(task));
     case HeuristicSpec::Kind::kRelaxedLayers: return fn(RelaxedLayersHeuristic(task));
     case HeuristicSpec::Kind::kLandmarkCost: return fn(LandmarkCostHeuristic(task));
+    case HeuristicSpec::Kind::kPatternDatabases: return fn(MaxPatternDatabaseHeuristic(task));
+    case HeuristicSpec::Kind::kUniformPatternDatabases:
+      return fn(UniformPatternDatabaseHeuristic(task));
+    case HeuristicSpec::Kind::kSaturatedPatternDatabases:
+      return fn(SaturatedPatternDatabaseHeuristic(task));
+    case HeuristicSpec::Kind::kRotatedSaturatedPatternDatabases:
+      return fn(RotatedSaturatedPatternDatabaseHeuristic(task));
+    case HeuristicSpec::Kind::kSaturatedMixed: return fn(SaturatedMixedHeuristic(task));
     case HeuristicSpec::Kind::kLinear: return fn(LinearHeuristic(task, spec.terms));
   }
   throw std::runtime_error("unreachable heuristic kind");

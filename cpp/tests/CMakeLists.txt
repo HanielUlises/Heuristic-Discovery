@@ -7,6 +7,8 @@ add_executable(hd_tests
   test_search.cpp
   test_oracle.cpp
   test_landmarks.cpp
+  test_costs.cpp
+  test_pdb.cpp
   test_json.cpp)
 
 target_link_libraries(hd_tests PRIVATE hd_core)

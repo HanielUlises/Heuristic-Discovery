@@ -29,7 +29,8 @@ Usage:
 
 Options:
   --instance FILE          Task file (repeatable).
-  --heuristic SPEC         zero | goal_count | relaxed_layers | landmark_cost
+  --heuristic SPEC         zero | goal_count | relaxed_layers | landmark_cost | pdb
+                           | pdb_uniform | scp | scp_rotations | scp_mixed
                            | [linear:]name=w,name=w,...   (repeatable; default: zero)
   --max-states N           Enumeration ceiling, 0 for unlimited (default: 200000)
   --time-limit SECONDS     Enumeration budget per instance, 0 for unlimited (default: 0)
