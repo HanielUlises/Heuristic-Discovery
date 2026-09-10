@@ -47,6 +47,9 @@ target_link_libraries(hd_plan PRIVATE hd_core)
 add_executable(hd_verify cpp/src/verify_main.cpp)
 target_link_libraries(hd_verify PRIVATE hd_core)
 
+add_executable(hd_orders cpp/src/orders_main.cpp)
+target_link_libraries(hd_orders PRIVATE hd_core)
+
 if(HD_BUILD_TESTS)
   enable_testing()
   add_subdirectory(cpp/tests)
